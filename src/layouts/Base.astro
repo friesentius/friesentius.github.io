@@ -2,16 +2,25 @@
 import '../styles/global.css';
 import fontLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 import { site } from '../data/site';
+import { socialImage } from '../data/social';
 
 interface Props {
   title: string;
   description: string;
   /** Play the boot sequence on this page (home only). */
   boot?: boolean;
+  /**
+   * Keep the page out of search engines and previews (the 404 page). It also
+   * gets no canonical URL: it is served at every address that does not exist.
+   */
+  noindex?: boolean;
 }
 
-const { title, description, boot = false } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const { title, description, boot = false, noindex = false } = Astro.props;
+// Every absolute URL comes from the one `site` value in astro.config.mjs, so
+// moving to friesentius.com is a one-line change there.
+const canonical = noindex ? undefined : new URL(Astro.url.pathname, Astro.site);
+const image = new URL(socialImage.path, Astro.site);
 ---
 
 <!doctype html>
@@ -22,16 +31,29 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="color-scheme" content="dark light" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:site_name" content={site.handle} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(socialImage.width)} />
+    <meta property="og:image:height" content={String(socialImage.height)} />
+    <meta property="og:image:alt" content={socialImage.alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={socialImage.alt} />
     <meta name="theme-color" content="#070a08" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f2ede1" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <slot name="head" />
     <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <!--

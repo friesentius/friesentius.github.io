@@ -171,13 +171,13 @@ describe('execute', () => {
     expect(execute('work', config, state).effects).toEqual([{ type: 'navigate', href: '/work' }]);
   });
 
-  it('shows contact links and points to the pane for the email', () => {
+  it('shows contact links and points to the show-email control in the pane', () => {
     const r = execute('contact', config, state);
     expect(r.effects).toEqual([{ type: 'navigate', href: '/#contact' }]);
     expect(plain(r.lines)).toEqual([
       'github | github.com/friesentius',
       'company | matrixautomate.co',
-      'email | in the contact pane',
+      'email | use "show email" in the contact pane',
     ]);
     const rows = r.lines[0];
     if (rows?.kind !== 'rows') throw new Error('expected rows');

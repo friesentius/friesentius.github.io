@@ -14,9 +14,10 @@
     "check": "astro check",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
+    "og": "node scripts/og-image.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
-    "test:e2e": "astro build && playwright test"
+    "test:e2e": "astro build && OUT_DIR=dist-email PUBLIC_TURNSTILE_SITEKEY=e2e-sitekey PUBLIC_EMAIL_WORKER_URL=https://email.example.test/ astro build && playwright test"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.5",

@@ -155,6 +155,58 @@
     padding: 0 0.15em;
   }
 
+  /* The contact email reveal (ContactEmail.astro): a button, the Turnstile
+     widget it loads on demand, and a polite status line. */
+  .email-slot {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .email-act {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .email-btn {
+    padding: 4px 12px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  .email-btn[hidden],
+  .email-widget:empty {
+    display: none;
+  }
+
+  .email-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .email-widget {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .email-note {
+    color: var(--dim);
+    font-size: 13px;
+  }
+
+  .email-note:empty,
+  .email-print {
+    display: none;
+  }
+
   .sr {
     position: absolute;
     width: 1px;
@@ -514,9 +566,10 @@
 
   .pt {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 2px 10px;
     padding: 6px 12px;
     border-bottom: 1px solid var(--line);
     background: var(--pane2);
@@ -530,6 +583,7 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     color: var(--fg);
+    white-space: nowrap;
   }
 
   .pt .n {
@@ -537,11 +591,15 @@
     margin-right: 6px;
   }
 
+  .pt > :first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Neither side is cut: when both do not fit one row, the label drops to its own. */
   .pt-r {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
+    margin-left: auto;
   }
 
   .pane.active .pt h2,
@@ -831,12 +889,12 @@
     min-width: 0;
     background: transparent;
     border: 0;
-    outline: none;
     color: var(--fg);
     font: inherit;
     font-size: 16px;
     caret-color: var(--accent);
-    padding: 2px 0;
+    padding: 3px 8px;
+    border-radius: 3px;
   }
 
   .cmdline:focus-within {
@@ -1535,12 +1593,12 @@
     min-width: 12ch;
     background: transparent;
     border: 0;
-    outline: none;
     color: var(--fg);
     font: inherit;
     font-size: 16px;
     caret-color: var(--accent);
-    padding: 2px 0;
+    padding: 3px 8px;
+    border-radius: 3px;
   }
 
   /* Phones drop the host from the prompt so the input keeps its room on the same line. */
@@ -1586,6 +1644,97 @@
     display: none;
   }
 
+  /* ---------- 404 ---------- */
+  .lost-h1 {
+    font-size: clamp(4rem, 18vw, 9rem);
+    line-height: 0.95;
+    color: var(--accent);
+  }
+
+  .lost-path {
+    color: var(--fg);
+    overflow-wrap: anywhere;
+    background: var(--acc-soft);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .find {
+    display: grid;
+    gap: 6px;
+    max-width: 34rem;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--pane2);
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  .find-cmd {
+    overflow-wrap: anywhere;
+  }
+
+  .find-bar {
+    height: 10px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .find-fill {
+    display: block;
+    height: 100%;
+    background: repeating-linear-gradient(to right, var(--ok) 0 6px, transparent 6px 8px);
+  }
+
+  .find-res {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* The search plays once: the bar fills, then the verdict appears. */
+  :root.js:not(.calm) .find-fill {
+    animation: find-fill 1.8s steps(18, end) 0.3s backwards;
+  }
+
+  :root.js:not(.calm) .find-res {
+    animation: find-res 0.2s steps(1, end) 2.1s backwards;
+  }
+
+  .p-exits {
+    grid-column: span 4;
+  }
+
+  .exit-list {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .exit-list li {
+    display: grid;
+    grid-template-columns: 13ch minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 14px;
+  }
+
+  .exit-list .btn {
+    justify-content: center;
+  }
+
+  @media (max-width: 520px) {
+    .exit-list li {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+    }
+  }
+
+  .exit-note {
+    color: var(--dim);
+    font-size: 13px;
+  }
+
   /* ---------- Work index ---------- */
   .p-intro {
     grid-column: span 8;
@@ -1601,7 +1750,8 @@
 
   @media (max-width: 1100px) {
     .p-intro,
-    .p-mx {
+    .p-mx,
+    .p-exits {
       grid-column: span 12;
     }
   }
@@ -2242,6 +2392,18 @@
   }
 }
 
+@keyframes find-fill {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes find-res {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes tile-in {
   from {
     opacity: 0;
@@ -2563,6 +2725,15 @@
   .ph {
     background: none;
     text-decoration: none;
+  }
+
+  .email-act,
+  .email-note:not(.soon) {
+    display: none !important;
+  }
+
+  .email-print {
+    display: inline;
   }
 
   .page-h1 {

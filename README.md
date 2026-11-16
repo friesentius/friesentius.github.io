@@ -11,7 +11,11 @@ friesentius.com, is attached.
 
 Pages: `/` (home), `/work` (project index), `/work/<project>` (a case study
 for each of Neokeys, Kanso, Potful and internal tools) and `/cv` (the CV,
-which also prints as a clean paper CV).
+which also prints as a clean paper CV). Any other address gets the custom 404
+page (`src/pages/404.astro`): a `find` that searches the site for the missing
+path and reports no matches, links home, to work and to the CV, and the same
+working prompt. It is marked `noindex`, has no canonical URL and is not in
+the sitemap.
 
 The home page boots like a machine and then becomes a tiling window manager;
 the other pages share its panes, top bar and toggles without the boot:
@@ -38,12 +42,16 @@ the other pages share its panes, top bar and toggles without the boot:
   hidden.
 
 Copy the owner has not written yet (CV summary and achievements, case study
-narrative, public email) is rendered with a dashed underline and the
-`Placeholder copy` tooltip. Never replace it with a guess; fill it in from
-`src/data/site.ts`, `src/data/cv.ts` and `src/content/projects/` (in a
-project file, replace a `- placeholder: ...` item with plain text). The email
-address is deliberately left out of the HTML; every email row renders
-`src/components/ContactEmail.astro`, the one place to add a reveal.
+narrative) is rendered with a dashed underline and the `Placeholder copy`
+tooltip. Never replace it with a guess; fill it in from `src/data/site.ts`,
+`src/data/cv.ts` and `src/content/projects/` (in a project file, replace a
+`- placeholder: ...` item with plain text).
+
+The email address is never in the source or the build output. Every email row
+renders `src/components/ContactEmail.astro`: a "show email" button that passes
+a Cloudflare Turnstile check and then gets the address from a small Worker in
+`worker/`. Until the owner sets it up (see [worker/README.md](worker/README.md))
+the row reads "email coming soon".
 
 ## Stack
 
@@ -68,16 +76,30 @@ src/
   data/site.ts        owner facts; unknown ones stay null and render as placeholders
   data/cv.ts          the CV entries, skills and education
   lib/shell.ts        the command prompt as pure, unit-tested logic
+  lib/email.ts        the "show email" reveal logic, unit-tested
   scripts/            browser behaviour: boot, terminal, prompt, panes, effects,
                       prefs, and one module per page (work, dial, cv)
   components/         the panes and their parts
   layouts/Base.astro  document shell, plus the inline pre-paint script
   layouts/Page.astro  top bar, prompt and footer for every page but home
-  pages/              index (home), work/index, work/[slug] and cv
+  pages/              index (home), work/index, work/[slug], cv, 404 and robots.txt
+  data/social.ts      the social share image's path, size and alt text
+scripts/og-image.mjs  renders public/og.png (the Open Graph and Twitter card)
 tests/
-  unit/               Vitest tests for the shell
+  unit/               Vitest tests for the shell and the email reveal
   e2e/                Playwright tests against the production build
+worker/               Cloudflare Worker that reveals the email (own README)
 ```
+
+## Search and sharing
+
+Every page has a canonical URL (with the trailing slash GitHub Pages serves),
+a description, and Open Graph and Twitter card tags pointing at
+`public/og.png` (1200x630). The image is generated, not drawn: edit the name
+or tagline in `src/data/site.ts`, run `npm run og` (it renders with the
+site's own JetBrains Mono, so it does not depend on installed fonts) and
+commit the PNG. `robots.txt` and the sitemap are built from `site`; the home
+page also carries `Person` structured data.
 
 ## Local development
 
@@ -97,8 +119,9 @@ prompt, or clear session storage, to see it again.
 | `npm run preview`   | Serve `dist/` locally                   |
 | `npm run lint`      | ESLint and Prettier check               |
 | `npm run format`    | Format everything with Prettier         |
+| `npm run og`        | Regenerate `public/og.png` (share card) |
 | `npm run check`     | Type check (`astro check`)              |
-| `npm run test:unit` | Vitest unit tests                       |
+| `npm run test:unit` | Vitest unit tests (site and Worker)     |
 | `npm run test:e2e`  | Build, then Playwright end-to-end tests |
 | `npm test`          | Unit and end-to-end tests               |
 
@@ -121,4 +144,6 @@ One-time repository setup (done by the owner, not by the workflows):
 2. Later, for the custom domain: verify friesentius.com in the account's
    Pages settings, add it under Settings > Pages > Custom domain, point DNS at
    GitHub Pages, tick Enforce HTTPS, and change `site` in `astro.config.mjs`.
-   With an Actions deploy no `CNAME` file is needed.
+   With an Actions deploy no `CNAME` file is needed. `site` is the only place
+   the domain lives: canonical URLs, Open Graph and Twitter card URLs, the
+   sitemap and `robots.txt` all follow it.

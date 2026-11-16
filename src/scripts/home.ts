@@ -12,6 +12,7 @@ import {
   typeInto,
 } from './effects';
 import { setupChrome } from './chrome';
+import { setupEmail } from './email';
 import { setupPanes } from './panes';
 import { motionOK, onMotionChange } from './prefs';
 import { createTerminal } from './terminal';
@@ -25,6 +26,7 @@ export function start(): void {
   const data = JSON.parse(document.getElementById('site-data')?.textContent ?? '{}') as SiteData;
 
   setupChrome();
+  setupEmail();
   setupPanes();
   setupScramble(isBooting);
   startClock();
