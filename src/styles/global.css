@@ -2617,8 +2617,7 @@
     text-decoration: none;
   }
 
-  .email-btn,
-  .email-widget,
+  .email-act,
   .email-note:not(.soon) {
     display: none !important;
   }

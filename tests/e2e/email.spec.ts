@@ -133,6 +133,8 @@ test.describe('show email', () => {
     await expect(note).toBeVisible();
     await expect(slot.getByRole('button', { name: 'show email' })).toBeHidden();
     await expect(slot).not.toContainText(ADDRESS);
+    const [slotBox, noteBox] = await Promise.all([slot.boundingBox(), note.boundingBox()]);
+    expect(noteBox?.x).toBe(slotBox?.x);
 
     await page.emulateMedia({ media: 'screen' });
     await page.getByRole('button', { name: 'show email' }).click();
