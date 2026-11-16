@@ -294,13 +294,15 @@
   .bar {
     position: sticky;
     top: 0;
-    z-index: 40;
+    z-index: 62;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px 14px;
     padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 2px, var(--scan) 2px 3px), var(--vignette),
+      color-mix(in srgb, var(--bg) 88%, transparent);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
@@ -2142,6 +2144,7 @@
    * Real screenshots show the product as it is, so their pane sits above the
    * scanline layer (z-index 60), which would otherwise stripe the images. A
    * child z-index cannot do it: the pane's reveal makes it a stacking context.
+   * The sticky bar sits above both and draws its own scanlines.
    */
   #screenshots:has(.shot.real) {
     z-index: 61;
@@ -2240,6 +2243,7 @@
 
   .cv-years {
     color: var(--dim);
+    white-space: nowrap;
   }
 
   .glog {

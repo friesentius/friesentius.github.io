@@ -247,6 +247,32 @@ test.describe('case studies', () => {
     );
   });
 
+  test('the sticky top bar stays above the screenshots as they scroll under it', async ({
+    page,
+  }) => {
+    await page.goto('/work/kanso');
+    const shot = page.locator('#screenshots .shot.real').first();
+    await shot.scrollIntoViewIfNeeded();
+    const bar = await page.locator('.bar').boundingBox();
+    const box = await shot.boundingBox();
+    await page.evaluate((dy) => window.scrollBy(0, dy), box!.y - bar!.y - 4);
+    const x = (await shot.boundingBox())!.x + 20;
+    const y = bar!.y + bar!.height / 2;
+    expect(
+      await page.evaluate(
+        ([px, py]) =>
+          document.elementFromPoint(px, py)?.closest('.bar, #screenshots')?.className ?? null,
+        [x, y],
+      ),
+    ).toContain('bar');
+    expect(
+      await page.evaluate(
+        ([px, py]) => document.elementFromPoint(px, py)?.closest('#screenshots') !== null,
+        [x, bar!.y + bar!.height + 10],
+      ),
+    ).toBe(true);
+  });
+
   test('internal tools keeps its narrative and screenshots as placeholders', async ({ page }) => {
     await page.goto('/work/internal-tools');
     for (const id of ['problem', 'approach', 'result'])
@@ -292,12 +318,12 @@ test.describe('cv', () => {
     const roles = page.locator('#experience .glog > li');
     await expect(roles).toHaveCount(2);
     await expect(roles.nth(0)).toContainText('IT Manager at Universal Fabricating Inc');
-    await expect(roles.nth(0)).toContainText('2022 - present');
+    await expect(roles.nth(0)).toContainText('Jun 2022 - present');
     await expect(roles.nth(0).locator('ul > li')).toHaveCount(8);
     await expect(roles.nth(1)).toContainText(
       'Information Technology Technician at Universal Fabricating Inc',
     );
-    await expect(roles.nth(1)).toContainText('2019 - 2022');
+    await expect(roles.nth(1)).toContainText('Nov 2019 - Jul 2022');
     // Listed by title and dates only.
     await expect(roles.nth(1).locator('ul')).toHaveCount(0);
     await expect(page.locator('#skills .tagc')).toHaveCount(12);

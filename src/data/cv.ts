@@ -4,7 +4,7 @@
 export interface Role {
   title: string | null;
   company: string;
-  /** e.g. "2022 - present". */
+  /** e.g. "Jun 2022 - present". */
   years: string;
   /**
    * Achievements or responsibilities. `null` renders placeholder lines; an
@@ -35,7 +35,7 @@ export const cv = {
     {
       title: 'IT Manager',
       company: 'Universal Fabricating Inc',
-      years: '2022 - present',
+      years: 'Jun 2022 - present',
       points: [
         'Lead and build the internal applications the company runs on; three are in daily use: equipment inspections, labour entry with ERP integration, and vendor scorecards.',
         'Lead IT strategy, governance and budgeting for the company.',
@@ -50,7 +50,7 @@ export const cv = {
     {
       title: 'Information Technology Technician',
       company: 'Universal Fabricating Inc',
-      years: '2019 - 2022',
+      years: 'Nov 2019 - Jul 2022',
       points: [],
     },
   ] satisfies Role[] as Role[],
