@@ -3,11 +3,12 @@ import ContactEmail from '../components/ContactEmail.astro';
 import Pane from '../components/Pane.astro';
 import Placeholder from '../components/Placeholder.astro';
 import Page from '../layouts/Page.astro';
-import { cv } from '../data/cv';
+import { cv, cvPdfPath } from '../data/cv';
 import { site } from '../data/site';
 
 // The web CV. It prints as a clean paper CV (the print rules at the end of
-// global.css), so the page itself is the source of any future PDF.
+// global.css), and the build prints it to the downloadable PDF
+// (scripts/cv-pdf.mjs), so the page is the PDF's only source.
 const host = (url: string) => new URL(url).host;
 ---
 
@@ -48,9 +49,9 @@ const host = (url: string) => new URL(url).host;
       )}
     </p>
     <div class="cta">
-      <span class="btn pending" title="A PDF version is coming soon">
-        CV as PDF: coming soon
-      </span>
+      <a class="btn" href={cvPdfPath} download>
+        download CV (PDF)
+      </a>
       <button class="btn ghost" type="button" id="printBtn">
         print this page
       </button>
@@ -106,15 +107,23 @@ const host = (url: string) => new URL(url).host;
             <p class="role">
               {r.title ?? <Placeholder>[Title]</Placeholder>} at {r.company}
             </p>
-            <ul>
-              {r.points.length
-                ? r.points.map((pt) => <li>{pt}</li>)
-                : [0, 1].map(() => (
-                    <li>
-                      <Placeholder>[Achievement or responsibility]</Placeholder>
-                    </li>
+            {r.points === null ? (
+              <ul>
+                {[0, 1].map(() => (
+                  <li>
+                    <Placeholder>[Achievement or responsibility]</Placeholder>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              r.points.length > 0 && (
+                <ul>
+                  {r.points.map((pt) => (
+                    <li>{pt}</li>
                   ))}
-            </ul>
+                </ul>
+              )
+            )}
           </div>
         </li>
       ))}
@@ -146,35 +155,20 @@ const host = (url: string) => new URL(url).host;
     id="education"
     index={4}
     marker="03"
-    title="education and certifications"
+    title="education"
     meta="cat edu.txt"
     class="cv-edu rv"
     bodyClass="edu"
   >
-    <div>
-      <h3>education</h3>
-      <ul>
-        {cv.education.length ? (
-          cv.education.map((e) => <li>{e}</li>)
-        ) : (
-          <li>
-            <Placeholder>[Program], [Institution], [Year]</Placeholder>
-          </li>
-        )}
-      </ul>
-    </div>
-    <div>
-      <h3>certifications</h3>
-      <ul>
-        {cv.certifications.length ? (
-          cv.certifications.map((c) => <li>{c}</li>)
-        ) : (
-          <li>
-            <Placeholder>[Certification, if any], [Year]</Placeholder>
-          </li>
-        )}
-      </ul>
-    </div>
+    <ul>
+      {cv.education.length ? (
+        cv.education.map((e) => <li>{e}</li>)
+      ) : (
+        <li>
+          <Placeholder>[Program], [Institution], [Year]</Placeholder>
+        </li>
+      )}
+    </ul>
   </Pane>
 </Page>
 

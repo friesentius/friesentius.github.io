@@ -215,7 +215,9 @@ test.describe('structure and names', () => {
           .filter((el) => {
             const label = el.getAttribute('aria-label') ?? el.getAttribute('aria-labelledby');
             const byFor = (el as HTMLInputElement).labels?.length;
-            return !label && !byFor && !(el.textContent ?? '').trim();
+            // A link around an image is named by the image's alt text.
+            const byAlt = el.querySelector('img[alt]:not([alt=""])');
+            return !label && !byFor && !byAlt && !(el.textContent ?? '').trim();
           })
           .map((el) => el.outerHTML.slice(0, 80)),
       );
