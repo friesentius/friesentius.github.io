@@ -256,8 +256,9 @@ test.describe('cv', () => {
       'infrastructure',
       'leadership',
     ]);
-    // The email is never in the page; a later change reveals it on request.
-    await expect(page.locator('[data-email-slot] .ph')).toHaveText('[public email address]');
+    // Until the Turnstile and Worker values are set, the email row says so.
+    await expect(page.locator('[data-email-slot]')).toHaveText('email coming soon');
+    await expect(page.getByRole('button', { name: 'show email' })).toHaveCount(0);
     await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
     await expect(page.getByText('CV as PDF: coming soon')).toBeVisible();
   });

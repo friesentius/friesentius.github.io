@@ -1,17 +1,37 @@
 ---
-import Placeholder from './Placeholder.astro';
-import { site } from '../data/site';
+import { emailConfig } from '../lib/email';
 
-// The value of every "email" contact row on the site. The address is kept out
-// of the HTML on purpose (scrapers); a later change replaces the placeholder
-// below with a "show email" button that reveals it on request. Keep every
-// email row on this component so that change has one place to land.
+// The value of every "email" contact row on the site. The address is never in
+// the HTML or the JS bundle: with both public values set, the visitor taps
+// "show email", passes a Cloudflare Turnstile check, and src/scripts/email.ts
+// gets the address from the Worker in worker/. Keep every email row on this
+// component so that logic has one place to attach.
+const config = emailConfig(
+  import.meta.env.PUBLIC_TURNSTILE_SITEKEY,
+  import.meta.env.PUBLIC_EMAIL_WORKER_URL,
+);
 ---
 
-<span class="email-slot" data-email-slot>
-  {site.email ? (
-    <a href={`mailto:${site.email}`}>{site.email}</a>
+<span
+  class="email-slot"
+  data-email-slot
+  data-sitekey={config?.sitekey}
+  data-worker={config?.workerUrl}
+>
+  {config ? (
+    <>
+      <span class="email-act">
+        <button class="btn ghost email-btn" type="button" data-email-btn hidden>
+          show email
+        </button>
+        <span class="email-widget" data-email-widget />
+      </span>
+      <span class="email-note" data-email-status role="status" aria-live="polite" />
+      <noscript>
+        <span class="email-note">Needs JavaScript - use the links here instead.</span>
+      </noscript>
+    </>
   ) : (
-    <Placeholder>[public email address]</Placeholder>
+    <span class="email-note soon">email coming soon</span>
   )}
 </span>
