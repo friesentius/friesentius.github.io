@@ -22,7 +22,6 @@ export function shellConfig(projects: Project[], context: ShellContext): ShellCo
     context,
     handle: site.handle,
     name: site.name,
-    email: site.email,
     github: site.github,
     company: { name: site.company.name, url: site.company.url },
     projects: [

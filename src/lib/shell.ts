@@ -61,7 +61,6 @@ export interface ShellConfig {
   handle: string;
   /** Owner's display name, or null while it is still a placeholder. */
   name: string | null;
-  email: string | null;
   github: string;
   company: { name: string; url: string };
   projects: ShellProject[];
@@ -114,16 +113,14 @@ const go = (name: keyof typeof PAGES): Result => {
 };
 
 function contactRows(config: ShellConfig): Line {
-  // The address is revealed on request (a later change), never printed here.
-  const email: Part = config.email
-    ? { text: config.email, href: `mailto:${config.email}` }
-    : { text: '[public email address]', placeholder: true };
+  // The email address is never part of the shell's data: it lives only in
+  // the Contact pane's ContactEmail component, the one place that reveals it.
   return {
     kind: 'rows',
     rows: [
       [['github'], [link(config.github)]],
       [['company'], [link(config.company.url)]],
-      [['email'], [email]],
+      [['email'], ['in the contact pane']],
     ],
   };
 }

@@ -11,6 +11,15 @@ async function ready(page: Page) {
   await expect(page.locator('#out')).toContainText('login ok.');
 }
 
+/**
+ * Wait for a navigation to land and the new page's script to run (it titles
+ * the motion button), so the next key press or command is not lost.
+ */
+async function at(page: Page, url: RegExp) {
+  await expect(page).toHaveURL(url);
+  await expect(page.locator('#motionBtn')).toHaveAttribute('title', /./);
+}
+
 async function run(page: Page, command: string) {
   const input = page.getByLabel('friesentius@web:~$');
   await input.fill(command);
@@ -117,10 +126,10 @@ test.describe('command prompt', () => {
 
   test('cv and work go to their pages', async ({ page }) => {
     await run(page, 'cv');
-    await expect(page).toHaveURL(/\/cv\/?$/);
-    await page.goBack();
+    await at(page, /\/cv\/?$/);
+    await ready(page);
     await run(page, 'work');
-    await expect(page).toHaveURL(/\/work\/?$/);
+    await at(page, /\/work\/?$/);
   });
 
   test('contact and open matrix stay on the page and focus their panes', async ({ page }) => {
@@ -208,14 +217,16 @@ test.describe('command prompt', () => {
     await page.locator('body').click({ position: { x: 5, y: 300 } });
     await page.keyboard.press('3');
     await expect(page.locator('#contact')).toBeFocused();
+    await expect(page.locator('#contact')).toBeInViewport();
     await page.keyboard.press('0');
     await expect(page.locator('#top')).toBeInViewport();
-    await page.keyboard.press('2');
-    await expect(page).toHaveURL(/\/cv\/?$/);
-    await page.keyboard.press('1');
-    await expect(page).toHaveURL(/\/work\/?$/);
-    await page.keyboard.press('0');
     await expect(page).toHaveURL(/:\d+\/$/);
+    await page.keyboard.press('2');
+    await at(page, /\/cv\/?$/);
+    await page.keyboard.press('1');
+    await at(page, /\/work\/?$/);
+    await page.keyboard.press('0');
+    await at(page, /:\d+\/$/);
   });
 
   test('tiles link to their case studies', async ({ page }) => {

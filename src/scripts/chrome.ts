@@ -18,7 +18,8 @@ export function navigate(href: string, { delay = 0 }: { delay?: number } = {}): 
   if (url.origin === location.origin && samePath(url.pathname, location.pathname)) {
     const id = decodeURIComponent(url.hash.slice(1)) || 'top';
     if (document.getElementById(id)) {
-      if (url.hash && location.hash !== url.hash) history.pushState(null, '', url.hash);
+      // Keep the address in step, so a reload or a shared link lands here too.
+      if (location.hash !== url.hash) history.pushState(null, '', url.hash || url.pathname);
       gotoPane(id);
       return;
     }

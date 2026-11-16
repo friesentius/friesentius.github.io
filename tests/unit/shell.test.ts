@@ -14,7 +14,6 @@ const config: ShellConfig = {
   context: 'home',
   handle: 'friesentius',
   name: null,
-  email: null,
   github: 'https://github.com/friesentius',
   company: { name: 'Matrix Automation Solutions', url: 'https://matrixautomate.co' },
   projects: [
@@ -138,24 +137,18 @@ describe('execute', () => {
     expect(execute('work', config, state).effects).toEqual([{ type: 'navigate', href: '/work' }]);
   });
 
-  it('shows contact links and marks a missing email as placeholder', () => {
+  it('shows contact links and points to the pane for the email', () => {
     const r = execute('contact', config, state);
     expect(r.effects).toEqual([{ type: 'navigate', href: '/#contact' }]);
-    const rows = r.lines[0];
-    expect(rows?.kind).toBe('rows');
-    if (rows?.kind !== 'rows') return;
-    const email = rows.rows[2]?.[1][0];
-    expect(typeof email !== 'string' && email?.placeholder).toBe(true);
-    const company = rows.rows[1]?.[1][0];
-    expect(typeof company !== 'string' && company?.href).toBe('https://matrixautomate.co');
-  });
-
-  it('links a real email when one is configured', () => {
-    const r = execute('contact', { ...config, email: 'hi@example.com' }, state);
+    expect(plain(r.lines)).toEqual([
+      'github | github.com/friesentius',
+      'company | matrixautomate.co',
+      'email | in the contact pane',
+    ]);
     const rows = r.lines[0];
     if (rows?.kind !== 'rows') throw new Error('expected rows');
-    const email = rows.rows[2]?.[1][0];
-    expect(typeof email !== 'string' && email?.href).toBe('mailto:hi@example.com');
+    const company = rows.rows[1]?.[1][0];
+    expect(typeof company !== 'string' && company?.href).toBe('https://matrixautomate.co');
   });
 
   it('whoami uses a placeholder until a name is set', () => {

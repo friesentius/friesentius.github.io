@@ -12,6 +12,15 @@ const PAGES = [
   { path: '/cv', h1: 'Tyler Friesen' },
 ];
 
+/**
+ * Wait for a navigation to land and the new page's script to run (it titles
+ * the motion button), so the next key press or command is not lost.
+ */
+async function at(page: Page, url: RegExp) {
+  await expect(page).toHaveURL(url);
+  await expect(page.locator('#motionBtn')).toHaveAttribute('title', /./);
+}
+
 async function run(page: Page, command: string) {
   const input = page.locator('#pIn');
   await input.fill(command);
@@ -64,10 +73,10 @@ test.describe('every page', () => {
     await expect(page.locator('.ws a[aria-current="page"]')).toHaveAttribute('href', '/work');
     await page.locator('body').click({ position: { x: 5, y: 300 } });
     await page.keyboard.press('2');
-    await expect(page).toHaveURL(/\/cv\/?$/);
+    await at(page, /\/cv\/?$/);
     await expect(page.locator('.ws a[aria-current="page"]')).toHaveAttribute('href', '/cv');
     await page.keyboard.press('3');
-    await expect(page).toHaveURL(/\/#contact$/);
+    await at(page, /\/#contact$/);
     await expect(page.locator('#contact')).toBeInViewport();
     await expect(page.locator('.ws a[aria-current="location"]')).toHaveAttribute(
       'href',
@@ -105,13 +114,13 @@ test.describe('prompt', () => {
   test('open, cd and the chips navigate', async ({ page }) => {
     await page.goto('/cv');
     await run(page, 'open potful');
-    await expect(page).toHaveURL(/\/work\/potful\/?$/);
+    await at(page, /\/work\/potful\/?$/);
     await run(page, 'cd ..');
-    await expect(page).toHaveURL(/\/work\/?$/);
+    await at(page, /\/work\/?$/);
     await page.getByRole('button', { name: 'open neokeys' }).click();
-    await expect(page).toHaveURL(/\/work\/neokeys\/?$/);
+    await at(page, /\/work\/neokeys\/?$/);
     await run(page, 'contact');
-    await expect(page).toHaveURL(/\/#contact$/);
+    await at(page, /\/#contact$/);
   });
 
   test('tab completes and theme toggles from the prompt', async ({ page }) => {

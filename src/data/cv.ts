@@ -43,7 +43,7 @@ export const cv = {
     },
     {
       heading: 'infrastructure',
-      skills: ['Infrastructure & DevOps', 'IT Strategy & Governance', 'Digital Transformation'],
+      skills: ['Infrastructure & DevOps', 'IT Strategy & Governance'],
     },
     {
       heading: 'leadership',
@@ -51,6 +51,7 @@ export const cv = {
         'Technology Leadership',
         'Technical Project Management',
         'Cross-Functional Team Leadership',
+        'Digital Transformation',
       ],
     },
   ] satisfies SkillGroup[] as SkillGroup[],
