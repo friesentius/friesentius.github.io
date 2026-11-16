@@ -6,8 +6,13 @@ import { motionOK } from './prefs';
 
 const panes = () => Array.from(document.querySelectorAll<HTMLElement>('.pane'));
 
+/** Mark a pane active and highlight its workspace in the top bar, if it has one. */
 export function setActive(pane: Element | null): void {
   panes().forEach((p) => p.classList.toggle('active', p === pane));
+  document.querySelectorAll<HTMLAnchorElement>('.ws a[data-ws]').forEach((a) => {
+    if (pane && a.dataset.ws === pane.id) a.setAttribute('aria-current', 'location');
+    else a.removeAttribute('aria-current');
+  });
 }
 
 /** Scroll to an element (a pane or a tile inside one) and focus its pane. */
@@ -54,23 +59,12 @@ export function setupPanes(): void {
     });
   });
 
-  // Highlight the workspace whose pane is in the middle of the viewport.
-  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.ws a[data-ws]'));
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        links.forEach((a) => {
-          if (a.dataset.ws === e.target.id) a.setAttribute('aria-current', 'location');
-          else a.removeAttribute('aria-current');
-        });
-      });
-    },
-    { rootMargin: '-45% 0px -50% 0px' },
-  );
-  links.forEach((a) => {
-    const target = a.dataset.ws && document.getElementById(a.dataset.ws);
-    if (target) io.observe(target);
+  // Workspace links jump like the 1-3 keys. Their href still works without JavaScript.
+  document.querySelectorAll<HTMLAnchorElement>('.ws a[data-ws]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      gotoPane(a.dataset.ws!);
+    });
   });
 
   // Keys 1-3 jump between workspaces, like a tiling window manager.

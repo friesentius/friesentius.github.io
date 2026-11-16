@@ -336,3 +336,54 @@ test.describe('accessibility', () => {
     });
   }
 });
+
+test.describe('workspace highlight', () => {
+  test.beforeEach(async ({ page }) => {
+    await skipBoot(page);
+    await ready(page);
+  });
+
+  /** Wait for scrolling to settle, then return the labels of every highlighted workspace. */
+  async function highlighted(page: Page) {
+    await page.waitForFunction(
+      () =>
+        new Promise<boolean>((resolve) => {
+          const y = window.scrollY;
+          setTimeout(() => resolve(window.scrollY === y), 300);
+        }),
+    );
+    return page.locator('.ws a[aria-current]').evaluateAll((els) =>
+      els.map((el) => el.textContent?.replace(/\s+/g, '').replace(/^\d/, '')),
+    );
+  }
+
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    test(`follows key jumps and tab clicks at ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.locator('body').click({ position: { x: 5, y: 300 } });
+      await page.keyboard.press('2');
+      await expect(page.locator('#cv')).toBeFocused();
+      expect(await highlighted(page)).toEqual(['CV']);
+      await page.keyboard.press('3');
+      await expect(page.locator('#contact')).toBeFocused();
+      expect(await highlighted(page)).toEqual(['Contact']);
+      await page.keyboard.press('1');
+      await expect(page.locator('#work')).toBeFocused();
+      expect(await highlighted(page)).toEqual(['Work']);
+      await page.locator('.ws a[data-ws="contact"]').click();
+      await expect(page.locator('#contact')).toBeFocused();
+      expect(await highlighted(page)).toEqual(['Contact']);
+    });
+  }
+
+  test('follows the cv and contact commands', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await run(page, 'cv');
+    expect(await highlighted(page)).toEqual(['CV']);
+    await run(page, 'contact');
+    expect(await highlighted(page)).toEqual(['Contact']);
+  });
+});
