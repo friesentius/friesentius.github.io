@@ -7,6 +7,7 @@
 
 import { chromium } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { site } from '../src/data/site.ts';
 
 const root = new URL('../', import.meta.url);
@@ -16,7 +17,7 @@ const font = new URL(
 );
 // Inlined, because a page set from a string cannot load file:// URLs.
 const fontData = (await readFile(font)).toString('base64');
-const out = new URL('public/og.png', root);
+const out = fileURLToPath(new URL('public/og.png', root));
 
 const name = site.name ?? site.handle;
 const github = site.github.replace(/^https?:\/\//, '');
@@ -69,8 +70,8 @@ try {
   const loaded = await page.evaluate(() => document.fonts.check("700 20px 'JB'"));
   if (!loaded)
     throw new Error('JetBrains Mono did not load; refusing to write a fallback-font image');
-  await page.screenshot({ path: out.pathname });
-  console.log(`wrote ${out.pathname}`);
+  await page.screenshot({ path: out });
+  console.log(`wrote ${out}`);
 } finally {
   await browser.close();
 }

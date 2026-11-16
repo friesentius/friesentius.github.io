@@ -166,6 +166,12 @@ test.describe('search and share metadata', () => {
     const json = await page.locator('script[type="application/ld+json"]').textContent();
     const data = JSON.parse(json ?? '{}');
     expect(data).toMatchObject({ '@type': 'Person', name: 'Tyler Friesen', url: `${SITE}/` });
+    expect(data.sameAs).toEqual(['https://github.com/friesentius']);
+    expect(data.worksFor).toEqual({
+      '@type': 'Organization',
+      name: 'Matrix Automation Solutions',
+      url: 'https://matrixautomate.co',
+    });
   });
 });
 

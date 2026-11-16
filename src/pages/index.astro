@@ -33,7 +33,8 @@ const personJson = jsonForScript({
   alternateName: site.handle,
   url: new URL('/', Astro.site),
   description: site.description,
-  sameAs: [site.github, site.company.url],
+  sameAs: [site.github],
+  worksFor: { '@type': 'Organization', name: site.company.name, url: site.company.url },
 });
 
 const words = [
