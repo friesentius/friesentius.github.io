@@ -38,7 +38,7 @@ should answer `403` (a bad token is refused), never the address.
 ## Local development
 
 ```sh
-npm test                 # unit tests (verify, CORS and hostname logic) run from the repo root
+npm run test:unit        # unit tests (verify, CORS and hostname logic), from the repo root
 cd worker && npx wrangler dev
 ```
 
