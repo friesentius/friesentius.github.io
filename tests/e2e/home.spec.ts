@@ -342,33 +342,69 @@ test.describe('layout', () => {
     await expect(out).not.toHaveClass(/more-below|more-above/);
   });
 
-  test('keyboard focus ring on faded shell output is drawn inside the mask', async ({ page }) => {
+  test('keyboard focus ring on shell output stays whole while both edges fade', async ({
+    page,
+  }) => {
     await skipBoot(page);
     await ready(page);
     const out = page.locator('#out');
     await run(page, 'help');
     await run(page, 'ls');
+    await out.evaluate((o) =>
+      o.scrollTo({ top: (o.scrollHeight - o.clientHeight) / 2, behavior: 'instant' }),
+    );
     await expect(out).toHaveClass(/more-above/);
+    await expect(out).toHaveClass(/more-below/);
+    await page.getByLabel('friesentius@web:~$').focus();
     await page.keyboard.press('Shift+Tab');
     await expect(out).toBeFocused();
+    expect(await out.evaluate((o) => o.matches(':focus-visible'))).toBe(true);
     const ring = await out.evaluate((o) => {
-      const s = getComputedStyle(o);
+      const frame = o.parentElement!;
+      const s = getComputedStyle(frame);
       return {
-        focusVisible: o.matches(':focus-visible'),
-        mask: s.maskImage,
-        maskClip: s.maskClip,
-        style: s.outlineStyle,
+        mask: getComputedStyle(o).maskImage,
+        frameMask: s.maskImage,
+        color: s.outlineColor,
         width: parseFloat(s.outlineWidth),
         offset: parseFloat(s.outlineOffset),
+        box: o.getBoundingClientRect().toJSON(),
       };
     });
-    expect(ring.focusVisible).toBe(true);
     expect(ring.mask).toContain('gradient');
-    expect(ring.maskClip).toBe('border-box');
-    expect(ring.style).not.toBe('none');
+    expect(ring.frameMask).toBe('none');
     expect(ring.width).toBeGreaterThan(0);
-    // The ring's outer edge must not extend past the border box the mask clips to.
-    expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+    // Sample the ring's pixels on all four sides, including the two faded edges.
+    const { box, width, offset } = ring;
+    const inner = offset + width / 2;
+    const strips = {
+      top: { x: box.x + 8, y: box.y - inner - 0.5, width: box.width - 16, height: 1 },
+      bottom: { x: box.x + 8, y: box.bottom + inner - 0.5, width: box.width - 16, height: 1 },
+      left: { x: box.x - inner - 0.5, y: box.y + 8, width: 1, height: box.height - 16 },
+      right: { x: box.right + inner - 0.5, y: box.y + 8, width: 1, height: box.height - 16 },
+    };
+    for (const [side, clip] of Object.entries(strips)) {
+      const png = (await page.screenshot({ clip })).toString('base64');
+      const share = await page.evaluate(
+        async ({ png, color }) => {
+          const [r, g, b] = color.match(/\d+/g)!.map(Number);
+          const img = await createImageBitmap(
+            await (await fetch(`data:image/png;base64,${png}`)).blob(),
+          );
+          const ctx = new OffscreenCanvas(img.width, img.height).getContext('2d')!;
+          ctx.drawImage(img, 0, 0);
+          const px = ctx.getImageData(0, 0, img.width, img.height).data;
+          let hits = 0;
+          for (let i = 0; i < px.length; i += 4) {
+            const d = Math.abs(px[i] - r) + Math.abs(px[i + 1] - g) + Math.abs(px[i + 2] - b);
+            if (d < 60) hits++;
+          }
+          return hits / (px.length / 4);
+        },
+        { png, color: ring.color },
+      );
+      expect(share, `ring visible on the ${side} edge`).toBeGreaterThan(0.9);
+    }
   });
 });
 

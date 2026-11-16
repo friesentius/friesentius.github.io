@@ -15,11 +15,20 @@ const chips = ['help', 'ls', 'open neokeys', 'cv', 'contact', 'theme', 'reboot']
   bodyClass="term"
   focusable={false}
 >
-  <div id="out" class="out" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0">
-    <p>
-      Everything here is also in the panes. This is a working prompt: type <b>help</b> or tap a
-      command below.
-    </p>
+  <div class="out-frame">
+    <div
+      id="out"
+      class="out"
+      role="log"
+      aria-live="polite"
+      aria-label="Terminal output"
+      tabindex="0"
+    >
+      <p>
+        Everything here is also in the panes. This is a working prompt: type <b>help</b> or tap a
+        command below.
+      </p>
+    </div>
   </div>
   <form id="cmdForm" class="cmdline" autocomplete="off">
     <label for="cmd" class="prompt">
