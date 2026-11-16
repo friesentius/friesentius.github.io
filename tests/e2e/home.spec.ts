@@ -302,6 +302,29 @@ test.describe('layout', () => {
     });
   }
 
+  for (const width of [360, 390]) {
+    for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+      test(`top bar keeps brand and toggles on one row at ${width}px (motion ${reducedMotion})`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 800 });
+        await page.emulateMedia({ reducedMotion });
+        await skipBoot(page);
+        await ready(page);
+        const [brand, tools, nav] = await Promise.all(
+          ['.brand', '.tools', '.bar nav'].map((s) =>
+            page.locator(s).evaluate((el) => el.getBoundingClientRect().toJSON()),
+          ),
+        );
+        // The toggles share the brand's row, and the workspace tabs sit below both.
+        expect(tools.bottom).toBeLessThanOrEqual(nav.top);
+        expect(
+          Math.abs(tools.top + tools.height / 2 - (brand.top + brand.height / 2)),
+        ).toBeLessThan(4);
+      });
+    }
+  }
+
   test('long shell output fades at the edges that have more to scroll', async ({ page }) => {
     await skipBoot(page);
     await ready(page);

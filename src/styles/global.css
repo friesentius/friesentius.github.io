@@ -371,6 +371,17 @@
     }
   }
 
+  /*
+   * Phones: the short label keeps the brand and both toggles on one row above
+   * the workspace tabs. The button's title explains the system setting.
+   */
+  @media (max-width: 420px) and (prefers-reduced-motion: reduce) {
+    .motion-val::after,
+    :root[data-motion='reduced'] .motion-val::after {
+      content: 'off';
+    }
+  }
+
   .clock {
     color: var(--dim);
     font-variant-numeric: tabular-nums;

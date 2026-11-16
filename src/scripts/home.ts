@@ -12,7 +12,7 @@ import {
   typeInto,
 } from './effects';
 import { setupPanes } from './panes';
-import { motionOK, onMotionChange, setMotion, toggleTheme } from './prefs';
+import { motionOK, onMotionChange, setMotion, systemReducedMotion, toggleTheme } from './prefs';
 import { createTerminal } from './terminal';
 
 interface SiteData {
@@ -25,7 +25,16 @@ export function start(): void {
 
   const themeBtn = document.getElementById('themeBtn');
   themeBtn?.addEventListener('click', () => toggleTheme(themeBtn));
-  document.getElementById('motionBtn')?.addEventListener('click', () => setMotion(!motionOK()));
+  const motionBtn = document.getElementById('motionBtn');
+  motionBtn?.addEventListener('click', () => setMotion(!motionOK()));
+  // The button cannot override the OS setting; say so (phones show a short label).
+  const syncMotionTitle = () => {
+    if (motionBtn)
+      motionBtn.title = systemReducedMotion()
+        ? 'Off: your system asks for reduced motion'
+        : 'Turn animations on or off';
+  };
+  syncMotionTitle();
 
   setupPanes();
   setupScramble(isBooting);
@@ -51,6 +60,7 @@ export function start(): void {
   }
 
   onMotionChange(() => {
+    syncMotionTitle();
     if (!motionOK()) {
       finishTyping();
       finishBoot(true);
