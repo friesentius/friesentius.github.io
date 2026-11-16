@@ -117,14 +117,14 @@ const go = (name: keyof typeof PAGES): Result => {
 };
 
 function contactRows(config: ShellConfig): Line {
-  // The email address is never part of the shell's data: it lives only in
-  // the Contact pane's ContactEmail component, the one place that reveals it.
+  // The email address is never part of the shell's data: the Contact pane's
+  // "show email" control (ContactEmail component) is the only way to get it.
   return {
     kind: 'rows',
     rows: [
       [['github'], [link(config.github)]],
       [['company'], [link(config.company.url)]],
-      [['email'], ['in the contact pane']],
+      [['email'], ['use "show email" in the contact pane']],
     ],
   };
 }

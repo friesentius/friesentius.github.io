@@ -1,0 +1,7 @@
+# Contact-email Worker. Free plan only; deployed by the site owner (see README.md).
+# TURNSTILE_SECRET and CONTACT_EMAIL are Worker secrets: set them with
+# `wrangler secret put`, never in this file.
+name = "friesentius-contact"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+workers_dev = true

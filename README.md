@@ -38,12 +38,16 @@ the other pages share its panes, top bar and toggles without the boot:
   hidden.
 
 Copy the owner has not written yet (CV summary and achievements, case study
-narrative, public email) is rendered with a dashed underline and the
-`Placeholder copy` tooltip. Never replace it with a guess; fill it in from
-`src/data/site.ts`, `src/data/cv.ts` and `src/content/projects/` (in a
-project file, replace a `- placeholder: ...` item with plain text). The email
-address is deliberately left out of the HTML; every email row renders
-`src/components/ContactEmail.astro`, the one place to add a reveal.
+narrative) is rendered with a dashed underline and the `Placeholder copy`
+tooltip. Never replace it with a guess; fill it in from `src/data/site.ts`,
+`src/data/cv.ts` and `src/content/projects/` (in a project file, replace a
+`- placeholder: ...` item with plain text).
+
+The email address is never in the source or the build output. Every email row
+renders `src/components/ContactEmail.astro`: a "show email" button that passes
+a Cloudflare Turnstile check and then gets the address from a small Worker in
+`worker/`. Until the owner sets it up (see [worker/README.md](worker/README.md))
+the row reads "email coming soon".
 
 ## Stack
 
@@ -68,6 +72,7 @@ src/
   data/site.ts        owner facts; unknown ones stay null and render as placeholders
   data/cv.ts          the CV entries, skills and education
   lib/shell.ts        the command prompt as pure, unit-tested logic
+  lib/email.ts        the "show email" reveal logic, unit-tested
   scripts/            browser behaviour: boot, terminal, prompt, panes, effects,
                       prefs, and one module per page (work, dial, cv)
   components/         the panes and their parts
@@ -75,8 +80,9 @@ src/
   layouts/Page.astro  top bar, prompt and footer for every page but home
   pages/              index (home), work/index, work/[slug] and cv
 tests/
-  unit/               Vitest tests for the shell
+  unit/               Vitest tests for the shell and the email reveal
   e2e/                Playwright tests against the production build
+worker/               Cloudflare Worker that reveals the email (own README)
 ```
 
 ## Local development
@@ -98,7 +104,7 @@ prompt, or clear session storage, to see it again.
 | `npm run lint`      | ESLint and Prettier check               |
 | `npm run format`    | Format everything with Prettier         |
 | `npm run check`     | Type check (`astro check`)              |
-| `npm run test:unit` | Vitest unit tests                       |
+| `npm run test:unit` | Vitest unit tests (site and Worker)     |
 | `npm run test:e2e`  | Build, then Playwright end-to-end tests |
 | `npm test`          | Unit and end-to-end tests               |
 

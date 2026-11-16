@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://friesentius.github.io',
   output: 'static',
+  // The e2e suite builds a second copy with the email reveal switched on.
+  outDir: process.env.OUT_DIR || './dist',
   trailingSlash: 'ignore',
   integrations: [sitemap()],
   vite: {

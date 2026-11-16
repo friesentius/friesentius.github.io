@@ -155,6 +155,58 @@
     padding: 0 0.15em;
   }
 
+  /* The contact email reveal (ContactEmail.astro): a button, the Turnstile
+     widget it loads on demand, and a polite status line. */
+  .email-slot {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .email-act {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .email-btn {
+    padding: 4px 12px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  .email-btn[hidden],
+  .email-widget:empty {
+    display: none;
+  }
+
+  .email-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .email-widget {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .email-note {
+    color: var(--dim);
+    font-size: 13px;
+  }
+
+  .email-note:empty,
+  .email-print {
+    display: none;
+  }
+
   .sr {
     position: absolute;
     width: 1px;
@@ -2563,6 +2615,15 @@
   .ph {
     background: none;
     text-decoration: none;
+  }
+
+  .email-act,
+  .email-note:not(.soon) {
+    display: none !important;
+  }
+
+  .email-print {
+    display: inline;
   }
 
   .page-h1 {

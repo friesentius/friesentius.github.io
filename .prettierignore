@@ -1,4 +1,5 @@
 dist/
+dist-email/
 .astro/
 node_modules/
 package-lock.json

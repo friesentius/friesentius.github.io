@@ -3,6 +3,7 @@
 
 import type { ShellConfig } from '../lib/shell';
 import { setupChrome } from './chrome';
+import { setupEmail } from './email';
 import { setupScramble, startClock, startScrambleReveal, syncReveal } from './effects';
 import { setupPanes } from './panes';
 import { motionOK, onMotionChange } from './prefs';
@@ -13,6 +14,7 @@ export function start(): void {
     shell: ShellConfig;
   };
   setupChrome();
+  setupEmail();
   setupPanes();
   setupScramble(() => false);
   startClock();

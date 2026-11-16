@@ -9,13 +9,6 @@ export const site = {
   tagline:
     'Solutions architect and full-stack engineer who turns manual processes into connected, reliable systems.' as
       string | null,
-  /**
-   * Public contact email. Deliberately unset: the address is kept away from
-   * scrapers and will be revealed on request by a separate change. Every
-   * place that shows it renders `ContactEmail.astro`, so that change has one
-   * component to swap.
-   */
-  email: null as string | null,
   github: 'https://github.com/friesentius',
   plannedDomain: 'friesentius.com',
   company: {

@@ -25,7 +25,12 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Public values for the "show email" control (see worker/README.md).
+      # Unset, the site shows "email coming soon".
       - run: npm run build
+        env:
+          PUBLIC_TURNSTILE_SITEKEY: ${{ vars.PUBLIC_TURNSTILE_SITEKEY }}
+          PUBLIC_EMAIL_WORKER_URL: ${{ vars.PUBLIC_EMAIL_WORKER_URL }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
