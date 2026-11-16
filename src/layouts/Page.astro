@@ -13,20 +13,23 @@ interface Props {
   /** Page name, e.g. "Work"; the owner's name is added after it. */
   title: string;
   description: string;
-  current: 'work' | 'cv';
+  /** The workspace tab to light; `none` for a page that has no tab (404). */
+  current: 'work' | 'cv' | 'none';
   /** Working directory shown in the prompt, e.g. `~/work`. */
   cwd: string;
   /** Tappable commands under the prompt. */
   chips: string[];
   /** Tiling position of the prompt pane, after the page's own panes. */
   promptIndex: number;
+  /** Keep the page out of search engines (the 404 page). */
+  noindex?: boolean;
 }
 
-const { title, description, current, cwd, chips, promptIndex } = Astro.props;
+const { title, description, current, cwd, chips, promptIndex, noindex = false } = Astro.props;
 const shell = shellConfig(await getProjects(), 'page', cwd);
 ---
 
-<Base title={`${title} - ${displayName}`} description={description}>
+<Base title={`${title} - ${displayName}`} description={description} noindex={noindex}>
   <TopBar current={current} />
   <main id="main" class="wm" tabindex="-1">
     <slot />

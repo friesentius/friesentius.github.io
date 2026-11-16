@@ -1,0 +1,11 @@
+import type { APIRoute } from 'astro';
+
+// Built from the one `site` value in astro.config.mjs, so the sitemap line
+// follows the domain when friesentius.com is attached.
+export const GET: APIRoute = ({ site }) =>
+  new Response(
+    ['User-agent: *', 'Allow: /', '', `Sitemap: ${new URL('sitemap-index.xml', site)}`, ''].join(
+      '\n',
+    ),
+    { headers: { 'Content-Type': 'text/plain; charset=utf-8' } },
+  );

@@ -26,6 +26,16 @@ const boot: BootLine[] = [
   { label: 'starting tty1' },
 ];
 
+const personJson = jsonForScript({
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: displayName,
+  alternateName: site.handle,
+  url: new URL('/', Astro.site),
+  description: site.description,
+  sameAs: [site.github, site.company.url],
+});
+
 const words = [
   ...projects.filter((p) => p.id !== 'tools').map((p) => p.data.name),
   'Matrix Automation',
@@ -33,6 +43,7 @@ const words = [
 ---
 
 <Base title={`${displayName} - ${site.handle}`} description={site.description} boot>
+  <script slot="head" type="application/ld+json" set:html={personJson} />
   <BootOverlay />
   <TopBar current="home" />
   <main id="main" class="wm" tabindex="-1">
