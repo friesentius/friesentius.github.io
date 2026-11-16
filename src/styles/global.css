@@ -2394,13 +2394,13 @@
 
 @keyframes find-fill {
   from {
-    width: 0;
+    transform: translateX(-100%);
   }
 }
 
 @keyframes find-res {
   from {
-    visibility: hidden;
+    opacity: 0;
   }
 }
 
