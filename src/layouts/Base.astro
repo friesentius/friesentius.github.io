@@ -1,0 +1,81 @@
+---
+import '../styles/global.css';
+import fontLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Play the boot sequence on this page (home only). */
+  boot?: boolean;
+}
+
+const { title, description, boot = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en" data-boot={boot ? '' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={site.handle} />
+    <meta name="theme-color" content="#070a08" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2ede1" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
+    <meta name="generator" content={Astro.generator} />
+    <!--
+      Runs before first paint (inline, not bundled, so it is not deferred):
+      applies the saved theme and motion choice and decides whether the boot
+      sequence plays. The boot plays once per browser session, never under
+      reduced motion, and the panes stay laid out underneath it.
+    -->
+    <script is:inline>
+      (() => {
+        const r = document.documentElement;
+        try {
+          const t = localStorage.getItem('fs-theme');
+          if (t === 'light' || t === 'dark') r.setAttribute('data-theme', t);
+          if (localStorage.getItem('fs-motion') === 'reduced')
+            r.setAttribute('data-motion', 'reduced');
+        } catch {
+          // Storage blocked: fall back to the OS theme and motion settings.
+        }
+        r.classList.add('js');
+        const calm =
+          matchMedia('(prefers-reduced-motion: reduce)').matches ||
+          r.getAttribute('data-motion') === 'reduced';
+        if (calm) r.classList.add('calm');
+        let seen = true;
+        try {
+          seen = sessionStorage.getItem('fs-booted') === '1';
+        } catch {
+          // No session storage: skip the boot rather than replay it every load.
+        }
+        if (!calm && !seen && r.hasAttribute('data-boot')) {
+          r.classList.add('booting');
+          // Safety net: never leave the page hidden if the page script fails to load.
+          setTimeout(() => {
+            if (!r.classList.contains('boot-live')) r.classList.remove('booting');
+          }, 4000);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
+    <slot />
+  </body>
+</html>

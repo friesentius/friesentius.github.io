@@ -1,0 +1,33 @@
+---
+import Pane from './Pane.astro';
+import Placeholder from './Placeholder.astro';
+import { site } from '../data/site';
+
+const host = (url: string) => new URL(url).host + new URL(url).pathname.replace(/\/$/, '');
+---
+
+<Pane id="contact" index={5} marker="3" title="contact" meta="--list" class="p-contact">
+  <p class="lead rv">
+    <span class="pr">$</span> contact --list
+  </p>
+  <ul class="contact">
+    <li class="rv">
+      <span class="k">github</span>
+      <a href={site.github}>{host(site.github)}</a>
+    </li>
+    <li class="rv">
+      <span class="k">company</span>
+      <a href={site.company.url}>{host(site.company.url)}</a>
+    </li>
+    <li class="rv">
+      <span class="k">email</span>
+      {site.email ? (
+        <a href={`mailto:${site.email}`}>{site.email}</a>
+      ) : (
+        <span>
+          <Placeholder>[public email address]</Placeholder>
+        </span>
+      )}
+    </li>
+  </ul>
+</Pane>

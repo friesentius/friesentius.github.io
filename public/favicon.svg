@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    rect { fill: #070a08; }
+    .b { fill: #ffb000; }
+    .f { fill: #58f08a; }
+    @media (prefers-color-scheme: light) {
+      rect { fill: #f2ede1; }
+      .b { fill: #a8410a; }
+      .f { fill: #2b6b37; }
+    }
+  </style>
+  <rect width="32" height="32" rx="6" />
+  <path class="b" d="M6 7h5v3H9v12h2v3H6z M26 7h-5v3h2v12h-2v3h5z" />
+  <path class="f" d="M13 10h7v3h-4v2h3v3h-3v5h-3z" />
+</svg>

@@ -1,0 +1,45 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Placeholder from './Placeholder.astro';
+import TileVisual from './TileVisual.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { id, data } = project;
+const host = (url: string) => new URL(url).host;
+---
+
+<details class="tile rv" id={`p-${id}`}>
+  <summary class="tile-h">
+    <TileVisual kind={data.visual} />
+    <span class="tile-t">
+      <span class="tile-name">{id}/</span>
+      <span class="tile-d">
+        {data.summary}
+        {data.summaryPlaceholder && ' '}
+        {data.summaryPlaceholder && <Placeholder>[{data.summaryPlaceholder}]</Placeholder>}
+      </span>
+    </span>
+    <span class="tile-x" aria-hidden="true">
+      <b>+</b>
+    </span>
+  </summary>
+  <div class="more-body">
+    <p>
+      <Placeholder>[{data.detailPlaceholder}]</Placeholder>
+    </p>
+    <ul class="tags" aria-label="Tags">
+      {data.tags.map((t) => (
+        <li>{t}</li>
+      ))}
+    </ul>
+    <p class="links">
+      {data.repo && <a href={data.repo}>repo ↗</a>}
+      {data.site && <a href={data.site}>{host(data.site)} ↗</a>}
+      <span class="soon">{data.caseStudyLabel}: coming soon</span>
+    </p>
+  </div>
+</details>

@@ -1,0 +1,72 @@
+---
+// Small decorative drawing for a project tile. Still until the tile is
+// hovered, focused or opened; calm under reduced motion.
+interface Props {
+  kind: 'dial' | 'kanso' | 'pot' | 'bars';
+}
+
+const { kind } = Astro.props;
+const keys = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
+const keyPos = keys.map((k, i) => {
+  const a = (i / keys.length) * Math.PI * 2 - Math.PI / 2;
+  return { k, x: +(30 + 19 * Math.cos(a)).toFixed(1), y: +(30 + 19 * Math.sin(a)).toFixed(1) };
+});
+---
+
+<span class="tile-v" aria-hidden="true">
+  {kind === 'dial' && (
+    <svg class="dial" viewBox="0 0 60 60">
+      <g class="ring">
+        <circle cx="30" cy="30" r="26" fill="none" stroke="currentColor" stroke-opacity=".25" />
+        <path
+          class="sweep"
+          d="M30 4 A26 26 0 0 1 56 30"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </g>
+      <g>
+        {keyPos.map((p, i) => (
+          <>
+            <circle class="k" style={`--d:${i}`} cx={p.x} cy={p.y} r="6" />
+            <text x={p.x} y={p.y}>
+              {p.k}
+            </text>
+          </>
+        ))}
+        <circle class="hub" cx="30" cy="30" r="4" />
+      </g>
+    </svg>
+  )}
+  {kind === 'kanso' && (
+    <span class="kanso">
+      {[0, 1, 2, 3].map((d) => (
+        <i style={`--d:${d}`} />
+      ))}
+      <span class="sw">
+        <b />
+        <b />
+        <b />
+      </span>
+    </span>
+  )}
+  {kind === 'pot' && (
+    <svg class="pot" viewBox="0 0 56 56">
+      <path class="st" style="--d:0" d="M20 18c-3-3 3-5 0-9" />
+      <path class="st" style="--d:1" d="M28 18c-3-3 3-5 0-9" />
+      <path class="st" style="--d:2" d="M36 18c-3-3 3-5 0-9" />
+      <path
+        class="body"
+        d="M8 26h40 M12 26v14a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V26 M8 26h-3 M48 26h3"
+      />
+    </svg>
+  )}
+  {kind === 'bars' && (
+    <span class="bars">
+      {[40, 75, 55, 90, 65].map((h, d) => (
+        <i style={`height:${h}%;--d:${d}`} />
+      ))}
+    </span>
+  )}
+</span>

@@ -1,0 +1,80 @@
+// Home page entry point: wires the boot sequence, prompt, panes and effects.
+
+import type { ShellConfig } from '../lib/shell';
+import { bindSkip, finishBoot, isBooting, runBoot, type BootLine } from './boot';
+import {
+  finishTyping,
+  setupScramble,
+  startClock,
+  startRotator,
+  startScrambleReveal,
+  syncReveal,
+  typeInto,
+} from './effects';
+import { setupPanes } from './panes';
+import { motionOK, onMotionChange, setMotion, systemReducedMotion, toggleTheme } from './prefs';
+import { createTerminal } from './terminal';
+
+interface SiteData {
+  shell: ShellConfig;
+  boot: BootLine[];
+}
+
+export function start(): void {
+  const data = JSON.parse(document.getElementById('site-data')?.textContent ?? '{}') as SiteData;
+
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn?.addEventListener('click', () => toggleTheme(themeBtn));
+  const motionBtn = document.getElementById('motionBtn');
+  motionBtn?.addEventListener('click', () => setMotion(!motionOK()));
+  // The button cannot override the OS setting; say so (phones show a short label).
+  const syncMotionTitle = () => {
+    if (motionBtn)
+      motionBtn.title = systemReducedMotion()
+        ? 'Off: your system asks for reduced motion'
+        : 'Turn animations on or off';
+  };
+  syncMotionTitle();
+
+  setupPanes();
+  setupScramble(isBooting);
+  startClock();
+  const rotator = startRotator();
+  syncReveal();
+
+  let welcomed = false;
+  const terminal = createTerminal(data.shell, {
+    reboot: () => {
+      welcomed = false;
+      runBoot(data.boot, afterBoot);
+    },
+  });
+
+  function afterBoot(): void {
+    if (welcomed) return;
+    welcomed = true;
+    const tagline = document.querySelector<HTMLElement>('#tagline [data-type]');
+    if (tagline && motionOK()) typeInto(tagline, tagline.textContent ?? '', 22);
+    startScrambleReveal();
+    terminal?.welcome();
+  }
+
+  onMotionChange(() => {
+    syncMotionTitle();
+    if (!motionOK()) {
+      finishTyping();
+      finishBoot(true);
+    } else {
+      startScrambleReveal();
+    }
+    syncReveal();
+    rotator.sync();
+  });
+
+  bindSkip();
+  if (isBooting() && motionOK()) runBoot(data.boot, afterBoot);
+  else {
+    document.documentElement.classList.remove('booting');
+    afterBoot();
+  }
+}

@@ -1,0 +1,36 @@
+---
+const workspaces = [
+  { n: '1', id: 'work', label: 'Work' },
+  { n: '2', id: 'cv', label: 'CV' },
+  { n: '3', id: 'contact', label: 'Contact' },
+];
+---
+
+<header class="bar">
+  <a class="brand" href="#top">
+    <span class="b">[</span>friesentius<span class="b">]</span>
+  </a>
+  <nav aria-label="Primary">
+    <ol class="ws">
+      {workspaces.map((w) => (
+        <li>
+          <a href={`#${w.id}`} data-ws={w.id}>
+            <span class="n" aria-hidden="true">
+              {w.n}
+            </span>
+            {w.label}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+  <div class="tools">
+    <button id="themeBtn" class="tbtn" type="button">
+      theme:<b class="theme-val"></b>
+    </button>
+    <button id="motionBtn" class="tbtn" type="button">
+      motion:<b class="motion-val"></b>
+    </button>
+    <span class="clock" id="clock" aria-hidden="true"></span>
+  </div>
+</header>
