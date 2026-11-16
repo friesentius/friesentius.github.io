@@ -202,7 +202,8 @@
     font-size: 13px;
   }
 
-  .email-note:empty {
+  .email-note:empty,
+  .email-print {
     display: none;
   }
 
@@ -2616,9 +2617,14 @@
     text-decoration: none;
   }
 
+  .email-btn,
   .email-widget,
   .email-note:not(.soon) {
-    display: none;
+    display: none !important;
+  }
+
+  .email-print {
+    display: inline;
   }
 
   .page-h1 {

@@ -119,6 +119,30 @@ test.describe('show email', () => {
     await expect(page.locator('[data-stub]')).toHaveAttribute('data-stub', 'light');
   });
 
+  test('in print, the CV points to the contact link until the address is revealed', async ({
+    page,
+  }) => {
+    await stubTurnstile(page);
+    await stubWorker(page);
+    await page.goto('/cv');
+    const slot = page.locator('#reach [data-email-slot]');
+    const note = slot.getByText('via the contact link at https://friesentius.github.io/cv');
+    await expect(note).toBeHidden();
+
+    await page.emulateMedia({ media: 'print' });
+    await expect(note).toBeVisible();
+    await expect(slot.getByRole('button', { name: 'show email' })).toBeHidden();
+    await expect(slot).not.toContainText(ADDRESS);
+
+    await page.emulateMedia({ media: 'screen' });
+    await page.getByRole('button', { name: 'show email' }).click();
+    await expect(slot.locator('a[href^="mailto:"]')).toHaveText(ADDRESS);
+
+    await page.emulateMedia({ media: 'print' });
+    await expect(slot.locator('a[href^="mailto:"]')).toBeVisible();
+    await expect(slot).toHaveText(ADDRESS);
+  });
+
   test('the home shell points at the pane control', async ({ page }) => {
     await page.addInitScript(() => sessionStorage.setItem('fs-booted', '1'));
     await page.goto('/');

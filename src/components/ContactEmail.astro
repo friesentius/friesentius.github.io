@@ -10,6 +10,7 @@ const config = emailConfig(
   import.meta.env.PUBLIC_TURNSTILE_SITEKEY,
   import.meta.env.PUBLIC_EMAIL_WORKER_URL,
 );
+const cvUrl = new URL('/cv', Astro.site).href;
 ---
 
 <span
@@ -27,6 +28,7 @@ const config = emailConfig(
         <span class="email-widget" data-email-widget />
       </span>
       <span class="email-note" data-email-status role="status" aria-live="polite" />
+      <span class="email-print">via the contact link at {cvUrl}</span>
       <noscript>
         <span class="email-note">Needs JavaScript - use the links here instead.</span>
       </noscript>
