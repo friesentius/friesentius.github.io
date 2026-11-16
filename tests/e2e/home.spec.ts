@@ -273,7 +273,51 @@ test.describe('layout', () => {
       );
       expect(overflow).toBe(0);
     });
+
+    test(`scanline layer spans the whole page at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await skipBoot(page);
+      await ready(page);
+      // A viewport-sized (fixed) layer would end at the first screen and leave a
+      // visible seam in the backdrop below it.
+      const { layer, page: pageHeight } = await page.evaluate(() => ({
+        layer: parseFloat(getComputedStyle(document.body, '::after').height),
+        page: document.documentElement.scrollHeight,
+      }));
+      expect(pageHeight).toBeGreaterThan(900);
+      // scrollHeight is rounded to whole pixels.
+      expect(layer).toBeGreaterThan(pageHeight - 1);
+    });
+
+    test(`shell shows the welcome and help without cutting a line at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await skipBoot(page);
+      await ready(page);
+      const out = page.locator('#out');
+      const fits = await out.evaluate((o) => o.scrollHeight <= o.clientHeight);
+      expect(fits).toBe(true);
+      await expect(out).not.toHaveClass(/more-below|more-above/);
+    });
   }
+
+  test('long shell output fades at the edges that have more to scroll', async ({ page }) => {
+    await skipBoot(page);
+    await ready(page);
+    const out = page.locator('#out');
+    await run(page, 'help');
+    await run(page, 'ls');
+    // New output scrolls to the bottom: only the top edge has more.
+    await expect(out).toHaveClass(/more-above/);
+    await expect(out).not.toHaveClass(/more-below/);
+    expect(await out.evaluate((o) => getComputedStyle(o).maskImage)).toContain('gradient');
+    await out.evaluate((o) => o.scrollTo({ top: 0, behavior: 'instant' }));
+    await expect(out).toHaveClass(/more-below/);
+    await expect(out).not.toHaveClass(/more-above/);
+    await run(page, 'clear');
+    await expect(out).not.toHaveClass(/more-below|more-above/);
+  });
 });
 
 test.describe('accessibility', () => {

@@ -21,7 +21,14 @@
   --glow: 0 0 0.55em rgb(88 240 138 / 0.35);
   --pane-glow: 0 0 0 1px var(--accent), 0 0 28px rgb(255 176 0 / 0.16);
   --scan: rgb(0 0 0 / 0.24);
-  --vignette: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.45) 100%);
+  /* Side vignette: depends only on width, so it tiles the full page height. */
+  --vignette: linear-gradient(
+    to right,
+    rgb(0 0 0 / 0.4),
+    transparent 16%,
+    transparent 84%,
+    rgb(0 0 0 / 0.4)
+  );
 }
 
 @media (prefers-color-scheme: light) {
@@ -95,12 +102,19 @@
     line-height: 1.55;
     min-height: 100svh;
     overflow-x: hidden;
+    /* Containing block for the full-height scanline layer below. */
+    position: relative;
   }
 
-  /* CRT scanlines and vignette. Decorative and never interactive. */
+  /*
+   * CRT scanlines and vignette. Decorative and never interactive. The layer
+   * spans the whole document (not the viewport), so there is no seam where a
+   * fixed layer would end, for example in full-page captures or prints.
+   */
+
   body::after {
     content: '';
-    position: fixed;
+    position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 60;
@@ -593,7 +607,7 @@
     border: 1px solid var(--line);
     border-radius: 4px;
     background: var(--bg);
-    font-size: clamp(1.2rem, 3.2vw, 2rem);
+    font-size: clamp(1.05rem, 4.6vw, 2rem);
     font-weight: 700;
     line-height: 1.25;
   }
@@ -688,7 +702,9 @@
 
   /* Fixed height: output after boot must not push the panes below it around. */
   .out {
-    height: 17.5rem;
+    --fade: 2.25rem;
+    /* Fits the welcome line (two lines on narrow panes) plus `help` exactly. */
+    height: 18.5rem;
     overflow-y: auto;
     overscroll-behavior: contain;
     font-size: 13px;
@@ -700,6 +716,28 @@
 
   .out > * {
     margin: 0 0 4px;
+  }
+
+  /*
+   * Scroll affordance: when more output is hidden above or below, that edge
+   * fades out instead of cutting a line in half (classes set in terminal.ts).
+   */
+  .out.more-below {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--fade)), transparent);
+  }
+
+  .out.more-above {
+    mask-image: linear-gradient(to top, #000 calc(100% - var(--fade)), transparent);
+  }
+
+  .out.more-above.more-below {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--fade),
+      #000 calc(100% - var(--fade)),
+      transparent
+    );
   }
 
   /* Links in output rows get a 24px target (WCAG 2.5.8). */
@@ -730,6 +768,8 @@
     display: grid;
     grid-template-columns: 9.5em minmax(0, 1fr);
     gap: 8px;
+    /* Keep labels on the same line as taller (24px target) links beside them. */
+    align-items: baseline;
   }
 
   .out .row > :first-child {

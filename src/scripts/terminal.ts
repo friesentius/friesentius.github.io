@@ -58,8 +58,18 @@ export function createTerminal(config: ShellConfig, hooks: TerminalHooks): Termi
   const history = new History();
   const themeBtn = document.getElementById('themeBtn');
 
+  // Mark which edges have more output beyond them; CSS fades those edges.
+  const syncFade = () => {
+    const below = out.scrollHeight - out.clientHeight - out.scrollTop > 1;
+    out.classList.toggle('more-above', out.scrollTop > 1);
+    out.classList.toggle('more-below', below);
+  };
+  out.addEventListener('scroll', syncFade, { passive: true });
+  new ResizeObserver(syncFade).observe(out);
+
   const scrollDown = () => {
     out.scrollTop = out.scrollHeight;
+    syncFade();
   };
 
   function print(line: Line): void {
@@ -109,6 +119,7 @@ export function createTerminal(config: ShellConfig, hooks: TerminalHooks): Termi
         break;
       case 'clear':
         out!.replaceChildren();
+        syncFade();
         break;
     }
   }
@@ -196,6 +207,7 @@ export function createTerminal(config: ShellConfig, hooks: TerminalHooks): Termi
     run('help', true);
     // Start at the welcome line; on short screens the help list scrolls.
     out!.scrollTop = 0;
+    syncFade();
   }
 
   return { run, welcome };
