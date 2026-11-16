@@ -341,6 +341,35 @@ test.describe('layout', () => {
     await run(page, 'clear');
     await expect(out).not.toHaveClass(/more-below|more-above/);
   });
+
+  test('keyboard focus ring on faded shell output is drawn inside the mask', async ({ page }) => {
+    await skipBoot(page);
+    await ready(page);
+    const out = page.locator('#out');
+    await run(page, 'help');
+    await run(page, 'ls');
+    await expect(out).toHaveClass(/more-above/);
+    await page.keyboard.press('Shift+Tab');
+    await expect(out).toBeFocused();
+    const ring = await out.evaluate((o) => {
+      const s = getComputedStyle(o);
+      return {
+        focusVisible: o.matches(':focus-visible'),
+        mask: s.maskImage,
+        maskClip: s.maskClip,
+        style: s.outlineStyle,
+        width: parseFloat(s.outlineWidth),
+        offset: parseFloat(s.outlineOffset),
+      };
+    });
+    expect(ring.focusVisible).toBe(true);
+    expect(ring.mask).toContain('gradient');
+    expect(ring.maskClip).toBe('border-box');
+    expect(ring.style).not.toBe('none');
+    expect(ring.width).toBeGreaterThan(0);
+    // The ring's outer edge must not extend past the border box the mask clips to.
+    expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+  });
 });
 
 test.describe('accessibility', () => {

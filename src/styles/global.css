@@ -729,6 +729,10 @@
     margin: 0 0 4px;
   }
 
+  .out:focus-visible {
+    outline-offset: -2px;
+  }
+
   /*
    * Scroll affordance: when more output is hidden above or below, that edge
    * fades out instead of cutting a line in half (classes set in terminal.ts).
