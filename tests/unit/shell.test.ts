@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  COMMAND_NAMES,
+  commandNames,
   complete,
   execute,
   History,
@@ -11,31 +11,35 @@ import {
 } from '../../src/lib/shell';
 
 const config: ShellConfig = {
+  context: 'home',
   handle: 'friesentius',
   name: null,
   email: null,
   github: 'https://github.com/friesentius',
   company: { name: 'Matrix Automation Solutions', url: 'https://matrixautomate.co' },
   projects: [
-    { slug: 'neokeys', summary: 'Obsidian plugin', target: 'p-neokeys', expandable: true },
-    { slug: 'kanso', summary: 'Obsidian theme', target: 'p-kanso', expandable: true },
+    { slug: 'neokeys', summary: 'Obsidian plugin', href: '/work/neokeys', caseStudy: true },
+    { slug: 'kanso', summary: 'Obsidian theme', href: '/work/kanso', caseStudy: true },
     {
       slug: 'potful',
       summary: 'Recipe site',
-      target: 'p-potful',
-      expandable: true,
+      href: '/work/potful',
+      caseStudy: true,
       url: 'https://potful.io',
     },
     {
       slug: 'matrix',
       summary: 'Matrix Automation Solutions',
-      target: 'matrix',
-      expandable: false,
+      href: '/#matrix',
+      caseStudy: false,
       url: 'https://matrixautomate.co',
       listing: 'matrix@',
     },
   ],
 };
+
+/** The one-line prompt on every page but home. */
+const page: ShellConfig = { ...config, context: 'page' };
 
 const state: ShellState = { theme: 'dark', motion: true, systemReducedMotion: false };
 
@@ -57,7 +61,7 @@ describe('execute', () => {
 
   it('lists every command in help', () => {
     const rows = plain(execute('help', config, state).lines);
-    expect(rows).toHaveLength(COMMAND_NAMES.length);
+    expect(rows).toHaveLength(commandNames('home').length);
     for (const name of [
       'help',
       'ls',
@@ -83,19 +87,27 @@ describe('execute', () => {
     ]);
   });
 
-  it('opens a project: expands its tile and scrolls to it', () => {
+  it('opens a project: goes to its case study', () => {
     const r = execute('open neokeys', config, state);
-    expect(r.effects).toEqual([
-      { type: 'expand', target: 'p-neokeys' },
-      { type: 'goto', target: 'p-neokeys' },
+    expect(r.effects).toEqual([{ type: 'navigate', href: '/work/neokeys' }]);
+    expect(plain(r.lines)).toEqual(['opening neokeys ...']);
+  });
+
+  it('accepts a trailing slash and any case', () => {
+    expect(execute('open Kanso/', config, state).effects).toEqual([
+      { type: 'navigate', href: '/work/kanso' },
     ]);
   });
 
-  it('accepts cd, a trailing slash and any case', () => {
-    expect(execute('cd Kanso/', config, state).effects).toContainEqual({
-      type: 'goto',
-      target: 'p-kanso',
-    });
+  it('cd goes to pages, home, or opens a project', () => {
+    const to = (input: string, cfg = config) => execute(input, cfg, state).effects;
+    expect(to('cd cv')).toEqual([{ type: 'navigate', href: '/cv' }]);
+    expect(to('cd work/')).toEqual([{ type: 'navigate', href: '/work' }]);
+    expect(to('cd')).toEqual([{ type: 'navigate', href: '/' }]);
+    expect(to('cd ~')).toEqual([{ type: 'navigate', href: '/' }]);
+    expect(to('cd ..', page)).toEqual([{ type: 'navigate', href: '/work' }]);
+    expect(to('cd kanso')).toEqual([{ type: 'navigate', href: '/work/kanso' }]);
+    expect(to('cd toString')).toEqual([]);
   });
 
   it('prints the external link when a project has one', () => {
@@ -108,9 +120,9 @@ describe('execute', () => {
     ).toBe(true);
   });
 
-  it('opens matrix without expanding a tile', () => {
+  it('opens matrix on the home page', () => {
     expect(execute('open matrix', config, state).effects).toEqual([
-      { type: 'goto', target: 'matrix' },
+      { type: 'navigate', href: '/#matrix' },
     ]);
   });
 
@@ -121,14 +133,14 @@ describe('execute', () => {
     expect(r.effects).toEqual([]);
   });
 
-  it('jumps to panes', () => {
-    expect(execute('cv', config, state).effects).toEqual([{ type: 'goto', target: 'cv' }]);
-    expect(execute('work', config, state).effects).toEqual([{ type: 'goto', target: 'work' }]);
+  it('goes to the CV and Work pages', () => {
+    expect(execute('cv', config, state).effects).toEqual([{ type: 'navigate', href: '/cv' }]);
+    expect(execute('work', config, state).effects).toEqual([{ type: 'navigate', href: '/work' }]);
   });
 
   it('shows contact links and marks a missing email as placeholder', () => {
     const r = execute('contact', config, state);
-    expect(r.effects).toEqual([{ type: 'goto', target: 'contact' }]);
+    expect(r.effects).toEqual([{ type: 'navigate', href: '/#contact' }]);
     const rows = r.lines[0];
     expect(rows?.kind).toBe('rows');
     if (rows?.kind !== 'rows') return;
@@ -189,6 +201,32 @@ describe('execute', () => {
     expect(execute('clear', config, state)).toEqual({ lines: [], effects: [{ type: 'clear' }] });
   });
 
+  it('keeps page-context output to one line', () => {
+    for (const cmd of ['help', 'ls', 'contact', 'whoami', 'open kanso', 'cv'])
+      expect(execute(cmd, page, state).lines.every((l) => l.kind === 'text')).toBe(true);
+    expect(plain(execute('help', page, state).lines)[0]).toMatch(
+      /^commands: help ls open <name> home/,
+    );
+    const ls = execute('ls', page, state).lines[0];
+    expect(
+      ls?.kind === 'text' &&
+        ls.parts.some((p) => typeof p !== 'string' && p.href === '/work/potful'),
+    ).toBe(true);
+    expect(execute('home', page, state).effects).toEqual([{ type: 'navigate', href: '/' }]);
+    expect(execute('contact', page, state).effects).toEqual([
+      { type: 'navigate', href: '/#contact' },
+    ]);
+  });
+
+  it('only has reboot and clear on the home page, and home only elsewhere', () => {
+    expect(commandNames('page')).not.toContain('reboot');
+    expect(commandNames('page')).not.toContain('clear');
+    expect(commandNames('home')).not.toContain('home');
+    expect(plain(execute('reboot', page, state).lines)).toEqual([
+      'reboot: command not found. try help',
+    ]);
+  });
+
   it('reports unknown commands', () => {
     expect(plain(execute('rm -rf /', config, state).lines)).toEqual([
       'rm: command not found. try help',
@@ -206,6 +244,10 @@ describe('complete', () => {
       kind: 'candidates',
       candidates: ['cv', 'contact', 'clear'],
     });
+    expect(complete('h', page)).toEqual({
+      kind: 'candidates',
+      candidates: ['help', 'home'],
+    });
   });
 
   it('extends to the common prefix', () => {
@@ -215,6 +257,7 @@ describe('complete', () => {
   it('completes project names after open and cd', () => {
     expect(complete('open neo', config)).toEqual({ kind: 'replace', value: 'open neokeys' });
     expect(complete('cd k', config)).toEqual({ kind: 'replace', value: 'cd kanso' });
+    expect(complete('cd w', config)).toEqual({ kind: 'replace', value: 'cd work' });
     expect(complete('open ', config)).toEqual({
       kind: 'candidates',
       candidates: ['neokeys', 'kanso', 'potful', 'matrix'],

@@ -1,0 +1,64 @@
+---
+import Pane from './Pane.astro';
+import { jsonForScript } from '../data/projects';
+import type { ShellConfig } from '../lib/shell';
+
+// The one-line prompt at the foot of every page but home (src/scripts/prompt.ts).
+// It needs JavaScript, so it is hidden without it.
+interface Props {
+  index: number;
+  /** Working directory shown in the prompt, e.g. `~/work`. */
+  cwd: string;
+  /** Tappable commands. */
+  chips: string[];
+  shell: ShellConfig;
+}
+
+const { index, cwd, chips, shell } = Astro.props;
+const hint = ['home', 'work', 'cv', 'contact', 'open <name>', 'help'];
+---
+
+<Pane
+  id="prompt"
+  index={index}
+  marker="$"
+  title="prompt"
+  meta="type help"
+  class="p-prompt"
+  focusable={false}
+>
+  <form id="pForm" class="pform" autocomplete="off">
+    <label for="pIn" class:list={['prompt', { long: cwd.length > 16 }]}>
+      <span class="host">friesentius@web:</span>
+      {cwd}$
+    </label>
+    <input
+      id="pIn"
+      name="cmd"
+      type="text"
+      spellcheck="false"
+      autocapitalize="off"
+      autocorrect="off"
+      enterkeyhint="go"
+      aria-describedby="pOut"
+    />
+  </form>
+  <p id="pOut" class="p-out" role="status" aria-live="polite">
+    {'Commands:'}
+    {hint.map((c) => (
+      <>
+        {' '}
+        <b>{c}</b>
+      </>
+    ))}
+    {'. Keys 0-3 switch pages.'}
+  </p>
+  <div class="prompt-row chips" role="group" aria-label="Quick commands">
+    {chips.map((c) => (
+      <button class="chip" type="button" data-cmd={c}>
+        {c}
+      </button>
+    ))}
+  </div>
+  <script type="application/json" id="site-data" set:html={jsonForScript({ shell })} />
+</Pane>

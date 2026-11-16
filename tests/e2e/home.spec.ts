@@ -93,7 +93,7 @@ test.describe('command prompt', () => {
     await expect(out).toContainText('matrix@');
     await run(page, 'whoami');
     await expect(out).toContainText(
-      'friesentius, aka [Full name]. Runs Matrix Automation Solutions.',
+      'friesentius, aka Tyler Friesen. Runs Matrix Automation Solutions.',
     );
     await run(page, 'frobnicate');
     await expect(out).toContainText('frobnicate: command not found');
@@ -103,20 +103,34 @@ test.describe('command prompt', () => {
     await expect(out).toContainText('replay the boot');
   });
 
-  test('open expands a project tile and moves to it', async ({ page }) => {
+  test('open goes to the case study', async ({ page }) => {
     await run(page, 'open kanso');
-    await expect(page.locator('#p-kanso')).toHaveAttribute('open', '');
-    await expect(page.locator('#p-kanso')).toBeInViewport();
-    await expect(page.locator('#work')).toBeFocused();
+    await expect(page.locator('#out')).toContainText('opening kanso');
+    await expect(page).toHaveURL(/\/work\/kanso\/?$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('kanso');
   });
 
-  test('cv and contact jump to their panes; contact links the company', async ({ page }) => {
+  test('open tools goes to the internal tools write-up', async ({ page }) => {
+    await run(page, 'open tools');
+    await expect(page).toHaveURL(/\/work\/internal-tools\/?$/);
+  });
+
+  test('cv and work go to their pages', async ({ page }) => {
     await run(page, 'cv');
-    await expect(page.locator('#cv')).toBeFocused();
-    await page.getByLabel('friesentius@web:~$').focus();
+    await expect(page).toHaveURL(/\/cv\/?$/);
+    await page.goBack();
+    await run(page, 'work');
+    await expect(page).toHaveURL(/\/work\/?$/);
+  });
+
+  test('contact and open matrix stay on the page and focus their panes', async ({ page }) => {
     await run(page, 'contact');
     await expect(page.locator('#contact')).toBeFocused();
+    await expect(page).toHaveURL(/\/#contact$/);
     await expect(page.locator('#out a[href="https://matrixautomate.co"]')).toBeVisible();
+    await page.getByLabel('friesentius@web:~$').focus();
+    await run(page, 'open matrix');
+    await expect(page.locator('#matrix')).toBeFocused();
   });
 
   test('theme and motion switch and persist', async ({ page }) => {
@@ -179,10 +193,10 @@ test.describe('command prompt', () => {
     await expect(input).toHaveValue('open neokeys');
     await input.fill('');
     await run(page, 'ls');
-    await run(page, 'cv');
+    await run(page, 'whoami');
     await input.focus();
     await input.press('ArrowUp');
-    await expect(input).toHaveValue('cv');
+    await expect(input).toHaveValue('whoami');
     await input.press('ArrowUp');
     await expect(input).toHaveValue('ls');
     await input.press('ArrowDown');
@@ -190,12 +204,25 @@ test.describe('command prompt', () => {
     await expect(input).toHaveValue('');
   });
 
-  test('keys 1-3 jump between workspaces', async ({ page }) => {
+  test('keys 0-3 switch workspaces: Contact in place, Work and CV as pages', async ({ page }) => {
     await page.locator('body').click({ position: { x: 5, y: 300 } });
-    await page.keyboard.press('2');
-    await expect(page.locator('#cv')).toBeFocused();
     await page.keyboard.press('3');
     await expect(page.locator('#contact')).toBeFocused();
+    await page.keyboard.press('0');
+    await expect(page.locator('#top')).toBeInViewport();
+    await page.keyboard.press('2');
+    await expect(page).toHaveURL(/\/cv\/?$/);
+    await page.keyboard.press('1');
+    await expect(page).toHaveURL(/\/work\/?$/);
+    await page.keyboard.press('0');
+    await expect(page).toHaveURL(/:\d+\/$/);
+  });
+
+  test('tiles link to their case studies', async ({ page }) => {
+    const tile = page.locator('#p-tools');
+    await tile.locator('summary').click();
+    await tile.getByRole('link', { name: 'write-up ->' }).click();
+    await expect(page).toHaveURL(/\/work\/internal-tools\/?$/);
   });
 
   test('tiles open and close by click', async ({ page }) => {
@@ -220,7 +247,7 @@ test.describe('phones', () => {
     await page.getByRole('button', { name: 'ls', exact: true }).tap();
     await expect(page.locator('#out')).toContainText('kanso/');
     await page.getByRole('button', { name: 'open neokeys' }).tap();
-    await expect(page.locator('#p-neokeys')).toHaveAttribute('open', '');
+    await expect(page).toHaveURL(/\/work\/neokeys\/?$/);
   });
 });
 
@@ -267,7 +294,9 @@ test.describe('layout', () => {
       await page.setViewportSize({ width, height: 900 });
       await skipBoot(page);
       await ready(page);
-      await run(page, 'open neokeys');
+      // An open tile spans the full row; it must still fit.
+      await page.locator('#p-neokeys summary').click();
+      await expect(page.locator('#p-neokeys')).toHaveAttribute('open', '');
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
@@ -440,39 +469,46 @@ test.describe('workspace highlight', () => {
           setTimeout(() => resolve(window.scrollY === y), 300);
         }),
     );
+    // A page tab gives way to a location tab (Contact) while that pane is active.
     return page
       .locator('.ws a[aria-current]')
       .evaluateAll((els) =>
-        els.map((el) => el.textContent?.replace(/\s+/g, '').replace(/^\d/, '')),
+        els
+          .filter((el) => !el.matches('.ws:has([aria-current="location"]) [aria-current="page"]'))
+          .map((el) => el.textContent?.replace(/\s+/g, '').replace(/^\d/, '')),
       );
   }
+
+  test('the workspace tabs are real links', async ({ page }) => {
+    const hrefs = await page
+      .locator('.ws a')
+      .evaluateAll((els) => els.map((el) => el.getAttribute('href')));
+    expect(hrefs).toEqual(['/', '/work', '/cv', '/#contact']);
+  });
 
   for (const viewport of [
     { width: 1440, height: 900 },
     { width: 390, height: 844 },
   ]) {
-    test(`follows key jumps and tab clicks at ${viewport.width}px`, async ({ page }) => {
+    test(`Home is lit until the Contact pane is reached at ${viewport.width}px`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
+      expect(await highlighted(page)).toEqual(['Home']);
       await page.locator('body').click({ position: { x: 5, y: 300 } });
-      await page.keyboard.press('2');
-      await expect(page.locator('#cv')).toBeFocused();
-      expect(await highlighted(page)).toEqual(['CV']);
       await page.keyboard.press('3');
       await expect(page.locator('#contact')).toBeFocused();
       expect(await highlighted(page)).toEqual(['Contact']);
-      await page.keyboard.press('1');
-      await expect(page.locator('#work')).toBeFocused();
-      expect(await highlighted(page)).toEqual(['Work']);
-      await page.locator('.ws a[data-ws="contact"]').click();
+      await page.keyboard.press('0');
+      expect(await highlighted(page)).toEqual(['Home']);
+      await page.locator('.ws a[href="/#contact"]').click();
       await expect(page.locator('#contact')).toBeFocused();
       expect(await highlighted(page)).toEqual(['Contact']);
     });
   }
 
-  test('follows the cv and contact commands', async ({ page }) => {
+  test('follows the contact command', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await run(page, 'cv');
-    expect(await highlighted(page)).toEqual(['CV']);
     await run(page, 'contact');
     expect(await highlighted(page)).toEqual(['Contact']);
   });

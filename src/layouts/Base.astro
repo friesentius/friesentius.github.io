@@ -56,6 +56,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
           matchMedia('(prefers-reduced-motion: reduce)').matches ||
           r.getAttribute('data-motion') === 'reduced';
         if (calm) r.classList.add('calm');
+        // Pages without the boot tile their panes in from the first frame.
+        else if (!r.hasAttribute('data-boot')) r.classList.add('tiled');
         let seen = true;
         try {
           seen = sessionStorage.getItem('fs-booted') === '1';

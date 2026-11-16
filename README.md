@@ -1,6 +1,6 @@
 # friesentius.github.io
 
-Personal site of friesentius: a public resume for clients, employers and other
+Personal site of Tyler Friesen (friesentius): a public resume for clients, employers and other
 developers, with projects, a CV and a link to
 [Matrix Automation Solutions](https://matrixautomate.co).
 
@@ -9,16 +9,25 @@ friesentius.com, is attached.
 
 ## What it is
 
-The home page boots like a machine and then becomes a tiling window manager:
+Pages: `/` (home), `/work` (project index), `/work/<project>` (a case study
+for each of Neokeys, Kanso, Potful and internal tools) and `/cv` (the CV,
+which also prints as a clean paper CV).
+
+The home page boots like a machine and then becomes a tiling window manager;
+the other pages share its panes, top bar and toggles without the boot:
 
 - **Boot sequence:** a short typed log that plays once per browser session.
   Any key, a tap or the skip button ends it; it never plays with motion off.
-- **Panes:** hero, shell, work, Matrix Automation, CV and contact. Keys `1` to
-  `3` jump between the Work, CV and Contact workspaces.
-- **Working command prompt:** `help`, `ls`, `open <project>`, `cv`, `contact`,
-  `work`, `whoami`, `theme`, `motion`, `reboot` and `clear`, with tab
-  completion and up/down history. On phones, tappable chips type the common
-  commands.
+- **Workspaces:** `0` Home, `1` Work, `2` CV and `3` Contact in the top bar
+  are real links, and the number keys follow them on every page.
+- **Working command prompt:** `help`, `ls`, `open <project>`, `work`, `cv`,
+  `contact`, `cd`, `whoami`, `theme`, `motion`, plus `reboot` and `clear` in
+  the home page's full shell, with tab completion and up/down history. `open`,
+  `work` and `cv` go to their pages. Every other page has a one-line prompt
+  with the same commands (and `home`). On phones, tappable chips run the
+  common commands.
+- **Work index:** filter chips (all, plugin, theme, web app, tooling); without
+  JavaScript every project is listed.
 - **Light and dark themes** (following the OS until the visitor picks one),
   with a circular reveal when switching.
 - **Motion:** an on-page toggle, and full `prefers-reduced-motion` support:
@@ -28,10 +37,13 @@ The home page boots like a machine and then becomes a tiling window manager:
   ordinary sections, project tiles are native `<details>`, and the prompt is
   hidden.
 
-Copy the owner has not written yet (name, positioning line, CV entries, case
-studies, public email) is rendered with a dashed underline and the
+Copy the owner has not written yet (CV summary and achievements, case study
+narrative, public email) is rendered with a dashed underline and the
 `Placeholder copy` tooltip. Never replace it with a guess; fill it in from
-`src/data/site.ts` and `src/content/projects/`.
+`src/data/site.ts`, `src/data/cv.ts` and `src/content/projects/` (in a
+project file, replace a `- placeholder: ...` item with plain text). The email
+address is deliberately left out of the HTML; every email row renders
+`src/components/ContactEmail.astro`, the one place to add a reveal.
 
 ## Stack
 
@@ -50,14 +62,18 @@ studies, public email) is rendered with a dashed underline and the
 
 ```
 src/
-  content/projects/   one Markdown file per project (the Work pane, the boot
-                      log and the shell's ls/open all read these)
+  content/projects/   one Markdown file per project: the home Work pane, the
+                      boot log, the shell's ls/open, the Work index and each
+                      case study all read these
   data/site.ts        owner facts; unknown ones stay null and render as placeholders
+  data/cv.ts          the CV entries, skills and education
   lib/shell.ts        the command prompt as pure, unit-tested logic
-  scripts/            browser behaviour: boot, terminal, panes, effects, prefs
+  scripts/            browser behaviour: boot, terminal, prompt, panes, effects,
+                      prefs, and one module per page (work, dial, cv)
   components/         the panes and their parts
   layouts/Base.astro  document shell, plus the inline pre-paint script
-  pages/index.astro   the home page
+  layouts/Page.astro  top bar, prompt and footer for every page but home
+  pages/              index (home), work/index, work/[slug] and cv
 tests/
   unit/               Vitest tests for the shell
   e2e/                Playwright tests against the production build

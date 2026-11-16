@@ -1,11 +1,14 @@
 ---
-// Small decorative drawing for a project tile. Still until the tile is
-// hovered, focused or opened; calm under reduced motion.
+// Small decorative drawing for a project tile (home) or card (Work index).
+// Still until the tile or card is hovered, focused or opened; calm under
+// reduced motion.
 interface Props {
   kind: 'dial' | 'kanso' | 'pot' | 'bars';
+  /** `card` is the larger, square frame of the Work index. */
+  size?: 'tile' | 'card';
 }
 
-const { kind } = Astro.props;
+const { kind, size = 'tile' } = Astro.props;
 const keys = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
 const keyPos = keys.map((k, i) => {
   const a = (i / keys.length) * Math.PI * 2 - Math.PI / 2;
@@ -13,7 +16,7 @@ const keyPos = keys.map((k, i) => {
 });
 ---
 
-<span class="tile-v" aria-hidden="true">
+<span class={size === 'card' ? 'wv' : 'tile-v'} aria-hidden="true">
   {kind === 'dial' && (
     <svg class="dial" viewBox="0 0 60 60">
       <g class="ring">

@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import Placeholder from './Placeholder.astro';
 import TileVisual from './TileVisual.astro';
+import { host, projectPath } from '../data/projects';
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -9,7 +10,6 @@ interface Props {
 
 const { project } = Astro.props;
 const { id, data } = project;
-const host = (url: string) => new URL(url).host;
 ---
 
 <details class="tile rv" id={`p-${id}`}>
@@ -37,9 +37,9 @@ const host = (url: string) => new URL(url).host;
       ))}
     </ul>
     <p class="links">
+      <a href={projectPath(project)}>{data.caseStudyLabel} -&gt;</a>
       {data.repo && <a href={data.repo}>repo ↗</a>}
       {data.site && <a href={data.site}>{host(data.site)} ↗</a>}
-      <span class="soon">{data.caseStudyLabel}: coming soon</span>
     </p>
   </div>
 </details>

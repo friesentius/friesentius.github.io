@@ -1,17 +1,10 @@
 // The browser side of the command prompt: renders output from src/lib/shell.ts
 // and carries out its effects.
 
-import {
-  complete,
-  execute,
-  History,
-  type Effect,
-  type Line,
-  type Part,
-  type ShellConfig,
-} from '../lib/shell';
+import { complete, execute, History, type Effect, type Line, type ShellConfig } from '../lib/shell';
+import { navigate } from './chrome';
 import { currentTheme, motionOK, setMotion, systemReducedMotion, toggleTheme } from './prefs';
-import { expandTile, gotoPane } from './panes';
+import { renderPart } from './render';
 
 export interface TerminalHooks {
   reboot: () => void;
@@ -20,32 +13,6 @@ export interface TerminalHooks {
 export interface Terminal {
   run: (input: string, quiet?: boolean) => void;
   welcome: () => void;
-}
-
-function renderPart(part: Part): Node {
-  if (typeof part === 'string') return document.createTextNode(part);
-  let node: HTMLElement;
-  if (part.href) {
-    const a = document.createElement('a');
-    a.href = part.href;
-    a.textContent = part.text;
-    node = a;
-  } else if (part.strong) {
-    node = document.createElement('b');
-    node.textContent = part.text;
-  } else {
-    node = document.createElement('span');
-    node.textContent = part.text;
-  }
-  if (part.color) node.classList.add(part.color === 'accent' ? 'pr' : 'okl');
-  if (part.placeholder) {
-    const ph = document.createElement('span');
-    ph.className = 'ph';
-    ph.title = 'Placeholder copy';
-    ph.append(node);
-    return ph;
-  }
-  return node;
 }
 
 const TONE_CLASS = { plain: '', ok: 'okl', err: 'err', echo: 'echo' } as const;
@@ -102,11 +69,9 @@ export function createTerminal(config: ShellConfig, hooks: TerminalHooks): Termi
 
   function apply(effect: Effect): void {
     switch (effect.type) {
-      case 'goto':
-        gotoPane(effect.target);
-        break;
-      case 'expand':
-        expandTile(effect.target);
+      case 'navigate':
+        // A short pause lets the reply show before another page loads.
+        navigate(effect.href, { delay: 260 });
         break;
       case 'toggle-theme':
         toggleTheme(themeBtn);

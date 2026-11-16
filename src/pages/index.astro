@@ -1,5 +1,4 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import BootOverlay from '../components/BootOverlay.astro';
 import ContactPane from '../components/ContactPane.astro';
@@ -10,42 +9,19 @@ import ShellPane from '../components/ShellPane.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import TopBar from '../components/TopBar.astro';
 import WorkPane from '../components/WorkPane.astro';
-import { site } from '../data/site';
-import type { ShellConfig } from '../lib/shell';
+import { getProjects, jsonForScript, shellConfig } from '../data/projects';
+import { displayName, site } from '../data/site';
 import type { BootLine } from '../scripts/boot';
 
-const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const projects = await getProjects();
 
 // Everything the page script needs, generated from the same data as the panes.
-const shell: ShellConfig = {
-  handle: site.handle,
-  name: site.name,
-  email: site.email,
-  github: site.github,
-  company: { name: site.company.name, url: site.company.url },
-  projects: [
-    ...projects.map((p) => ({
-      slug: p.id,
-      summary: p.data.summary,
-      target: `p-${p.id}`,
-      expandable: true,
-      url: p.data.site,
-    })),
-    {
-      slug: 'matrix',
-      summary: site.company.name,
-      target: 'matrix',
-      expandable: false,
-      url: site.company.url,
-      listing: 'matrix@',
-    },
-  ],
-};
+const shell = shellConfig(projects, 'home');
 
 const boot: BootLine[] = [
   { label: 'probing display', value: 'display' },
   { label: 'mounting /work' },
-  ...projects.map((p) => ({ label: `loading ${p.id}`, value: p.data.summary.replace(/\.$/, '') })),
+  ...projects.map((p) => ({ label: `loading ${p.id}`, value: p.data.typeLabel })),
   { label: 'linking matrix', value: new URL(site.company.url).host },
   { label: 'starting tty1' },
 ];
@@ -56,9 +32,9 @@ const words = [
 ];
 ---
 
-<Base title={site.handle} description={site.description} boot>
+<Base title={`${displayName} - ${site.handle}`} description={site.description} boot>
   <BootOverlay />
-  <TopBar />
+  <TopBar current="home" />
   <main id="main" class="wm" tabindex="-1">
     <HeroPane words={words} />
     <ShellPane />
@@ -68,14 +44,7 @@ const words = [
     <ContactPane />
   </main>
   <SiteFooter />
-  <script
-    type="application/json"
-    id="site-data"
-    set:html={
-      // `<` is escaped so no string in the data can close this script element.
-      JSON.stringify({ shell, boot }).replace(/</g, '\\u003c')
-    }
-  />
+  <script type="application/json" id="site-data" set:html={jsonForScript({ shell, boot })} />
   <script>
     import { start } from '../scripts/home';
     start();

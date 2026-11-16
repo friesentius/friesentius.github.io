@@ -1,9 +1,10 @@
-// The home page's command prompt, as pure logic with no DOM access.
+// The site's command prompt, as pure logic with no DOM access.
 //
 // `execute` turns one input line into printable output plus a list of effects
-// (scroll to a pane, toggle the theme, ...). The browser layer in
-// `src/scripts/terminal.ts` renders the output and carries out the effects,
-// which keeps every command unit-testable.
+// (navigate to a page, toggle the theme, ...). The browser layers render the
+// output and carry out the effects: `src/scripts/terminal.ts` for the home
+// page's full shell, `src/scripts/prompt.ts` for the one-line prompt on the
+// other pages. Keeping the logic here makes every command unit-testable.
 
 /** One run of output text. A plain string is printed as-is. */
 export type Part =
@@ -24,8 +25,11 @@ export type Line =
   { kind: 'text'; tone: Tone; parts: Part[] } | { kind: 'rows'; rows: Array<[Part[], Part[]]> };
 
 export type Effect =
-  | { type: 'goto'; target: string }
-  | { type: 'expand'; target: string }
+  /**
+   * Go to a site path such as `/cv` or `/#contact`. When the path is the
+   * current page, the browser layer scrolls to the hash's pane instead.
+   */
+  | { type: 'navigate'; href: string }
   | { type: 'toggle-theme' }
   | { type: 'toggle-motion' }
   | { type: 'reboot' }
@@ -35,17 +39,25 @@ export interface ShellProject {
   /** What `open` takes, e.g. `neokeys`. */
   slug: string;
   summary: string;
-  /** Element id of the project's tile, or of its pane for `matrix`. */
-  target: string;
-  /** True when `open` should expand a collapsible tile. */
-  expandable: boolean;
+  /** Where `open` goes: the case study, or a pane on the home page. */
+  href: string;
+  /** A project with a case study (as opposed to the Matrix Automation link). */
+  caseStudy: boolean;
   /** External link printed by `open`, if any. */
   url?: string;
   /** Printed by `ls` instead of `slug/`. */
   listing?: string;
 }
 
+/**
+ * `home` is the full terminal on the home page (multi-line output, tables,
+ * `reboot` and `clear`). `page` is the one-line prompt on every other page, so
+ * its output always fits on a single wrapped line.
+ */
+export type ShellContext = 'home' | 'page';
+
 export interface ShellConfig {
+  context: ShellContext;
   handle: string;
   /** Owner's display name, or null while it is still a placeholder. */
   name: string | null;
@@ -72,17 +84,37 @@ interface Command {
   name: string;
   usage: string;
   help: string;
+  /** Contexts the command exists in; all of them when omitted. */
+  only?: ShellContext;
   run: (arg: string, config: ShellConfig, state: ShellState) => Result;
 }
 
+/** Site pages that `cd` and the page commands go to. */
+export const PAGES: Readonly<Record<string, { href: string; label: string }>> = {
+  home: { href: '/', label: '~/' },
+  work: { href: '/work', label: '~/work' },
+  cv: { href: '/cv', label: '~/cv' },
+  contact: { href: '/#contact', label: '~/#contact' },
+};
+
 const text = (tone: Tone, ...parts: Part[]): Line => ({ kind: 'text', tone, parts });
+const strong = (t: string): Part => ({ text: t, strong: true });
 const link = (url: string): Part => ({
   text: url.replace(/^https?:\/\//, ''),
   href: url,
   external: true,
 });
 
+const go = (name: keyof typeof PAGES): Result => {
+  const page = PAGES[name]!;
+  return {
+    lines: [text('ok', `-> ${page.label}`)],
+    effects: [{ type: 'navigate', href: page.href }],
+  };
+};
+
 function contactRows(config: ShellConfig): Line {
+  // The address is revealed on request (a later change), never printed here.
   const email: Part = config.email
     ? { text: config.email, href: `mailto:${config.email}` }
     : { text: '[public email address]', placeholder: true };
@@ -96,34 +128,54 @@ function contactRows(config: ShellConfig): Line {
   };
 }
 
+function commandsFor(context: ShellContext): Command[] {
+  return COMMANDS.filter((c) => !c.only || c.only === context);
+}
+
 const COMMANDS: Command[] = [
   {
     name: 'help',
     usage: 'help',
     help: 'this list',
-    run: () => ({
-      lines: [
-        {
-          kind: 'rows',
-          rows: COMMANDS.map((c) => [[c.usage], [c.help]] as [Part[], Part[]]),
-        },
-      ],
-      effects: [],
-    }),
+    run: (_arg, config) => {
+      const commands = commandsFor(config.context);
+      if (config.context === 'home') {
+        return {
+          lines: [
+            { kind: 'rows', rows: commands.map((c) => [[c.usage], [c.help]] as [Part[], Part[]]) },
+          ],
+          effects: [],
+        };
+      }
+      const parts: Part[] = ['commands:'];
+      commands.forEach((c) => parts.push(' ', strong(c.usage)));
+      parts.push('. Keys 0-3 switch pages.');
+      return { lines: [text('plain', ...parts)], effects: [] };
+    },
   },
   {
     name: 'ls',
     usage: 'ls',
     help: 'list projects',
-    run: (_arg, config) => ({
-      lines: [
-        {
-          kind: 'rows',
-          rows: config.projects.map((p) => [[p.listing ?? `${p.slug}/`], [p.summary]]),
-        },
-      ],
-      effects: [],
-    }),
+    run: (_arg, config) => {
+      if (config.context === 'home') {
+        return {
+          lines: [
+            {
+              kind: 'rows',
+              rows: config.projects.map((p) => [[p.listing ?? `${p.slug}/`], [p.summary]]),
+            },
+          ],
+          effects: [],
+        };
+      }
+      const parts: Part[] = [];
+      config.projects.forEach((p, i) => {
+        if (i) parts.push('  ');
+        parts.push({ text: p.listing ?? `${p.slug}/`, href: p.href });
+      });
+      return { lines: [text('plain', ...parts)], effects: [] };
+    },
   },
   {
     name: 'open',
@@ -132,7 +184,7 @@ const COMMANDS: Command[] = [
     run: (arg, config) => {
       if (!arg)
         return {
-          lines: [text('err', 'usage: open <name>. try ', { text: 'ls', strong: true })],
+          lines: [text('err', 'usage: open <name>. try ', strong('ls'))],
           effects: [],
         };
       const project = config.projects.find((p) => p.slug === arg);
@@ -140,33 +192,39 @@ const COMMANDS: Command[] = [
       const parts: Part[] = [`opening ${project.slug}`];
       if (project.url) parts.push(' (', link(project.url), ')');
       parts.push(' ...');
-      const effects: Effect[] = project.expandable
-        ? [{ type: 'expand', target: project.target }]
-        : [];
-      effects.push({ type: 'goto', target: project.target });
-      return { lines: [text('ok', ...parts)], effects };
+      return { lines: [text('ok', ...parts)], effects: [{ type: 'navigate', href: project.href }] };
     },
+  },
+  {
+    name: 'home',
+    usage: 'home',
+    help: 'go to the home page',
+    only: 'page',
+    run: () => go('home'),
+  },
+  {
+    name: 'work',
+    usage: 'work',
+    help: 'all projects',
+    run: () => go('work'),
   },
   {
     name: 'cv',
     usage: 'cv',
-    help: 'jump to the CV',
-    run: () => ({ lines: [text('ok', '-> cv.txt')], effects: [{ type: 'goto', target: 'cv' }] }),
+    help: 'the full CV',
+    run: () => go('cv'),
   },
   {
     name: 'contact',
     usage: 'contact',
     help: 'how to get in touch',
-    run: (_arg, config) => ({
-      lines: [contactRows(config)],
-      effects: [{ type: 'goto', target: 'contact' }],
-    }),
-  },
-  {
-    name: 'work',
-    usage: 'work',
-    help: 'jump to the projects',
-    run: () => ({ lines: [text('ok', '-> ~/work')], effects: [{ type: 'goto', target: 'work' }] }),
+    run: (_arg, config) =>
+      config.context === 'home'
+        ? {
+            lines: [contactRows(config)],
+            effects: [{ type: 'navigate', href: PAGES.contact!.href }],
+          }
+        : go('contact'),
   },
   {
     name: 'whoami',
@@ -175,7 +233,7 @@ const COMMANDS: Command[] = [
     run: (_arg, config) => {
       const name: Part = config.name ?? { text: '[Full name]', placeholder: true };
       const builds = config.projects
-        .filter((p) => p.expandable)
+        .filter((p) => p.caseStudy)
         .map((p) => p.slug)
         .join(', ');
       return {
@@ -221,6 +279,7 @@ const COMMANDS: Command[] = [
     name: 'reboot',
     usage: 'reboot',
     help: 'replay the boot',
+    only: 'home',
     run: (_arg, _config, state) =>
       state.motion
         ? { lines: [text('ok', 'rebooting...')], effects: [{ type: 'reboot' }] }
@@ -230,26 +289,36 @@ const COMMANDS: Command[] = [
     name: 'clear',
     usage: 'clear',
     help: 'clear the screen',
+    only: 'home',
     run: () => ({ lines: [], effects: [{ type: 'clear' }] }),
   },
 ];
 
-const ALIASES: Record<string, string> = { cd: 'open' };
+/** Command names available in a context, in help order, for tab completion. */
+export function commandNames(context: ShellContext): string[] {
+  return commandsFor(context).map((c) => c.name);
+}
 
-/** Command names in help order, for tab completion. */
-export const COMMAND_NAMES: readonly string[] = COMMANDS.map((c) => c.name);
+/** `cd` goes to a page (`cd cv`, `cd ~`, `cd ..`) or, failing that, opens a project. */
+function cd(arg: string, config: ShellConfig, state: ShellState): Result {
+  if (!arg || arg === '~' || arg === '/') return go('home');
+  if (arg === '..') return config.context === 'page' ? go('work') : go('home');
+  if (Object.hasOwn(PAGES, arg)) return go(arg as keyof typeof PAGES);
+  return COMMANDS.find((c) => c.name === 'open')!.run(arg, config, state);
+}
 
 export function execute(input: string, config: ShellConfig, state: ShellState): Result {
   const line = input.trim();
   if (!line) return { lines: [], effects: [] };
   const [head = '', rawArg = ''] = line.split(/\s+/);
-  const name = ALIASES[head.toLowerCase()] ?? head.toLowerCase();
-  const arg = rawArg.toLowerCase().replace(/\/$/, '');
+  const name = head.toLowerCase();
+  const arg = rawArg.toLowerCase().replace(/(.)\/$/, '$1');
   if (name === 'sudo') return { lines: [text('err', 'nice try.')], effects: [] };
-  const command = COMMANDS.find((c) => c.name === name);
+  if (name === 'cd') return cd(arg, config, state);
+  const command = commandsFor(config.context).find((c) => c.name === name);
   if (!command) {
     return {
-      lines: [text('err', `${head}: command not found. try `, { text: 'help', strong: true })],
+      lines: [text('err', `${head}: command not found. try `, strong('help'))],
       effects: [],
     };
   }
@@ -267,15 +336,17 @@ function commonPrefix(words: string[]): string {
   return prefix;
 }
 
-/** Tab completion: command names first, then project names after `open`/`cd`. */
+/** Tab completion: command names first, then project names after `open`, pages too after `cd`. */
 export function complete(value: string, config: ShellConfig): Completion {
   if (!value.trim()) return { kind: 'none' };
   const parts = value.split(' ');
   const last = (parts[parts.length - 1] ?? '').toLowerCase();
+  const head = (parts[0] ?? '').toLowerCase();
+  const slugs = config.projects.map((p) => p.slug);
   let pool: readonly string[];
-  if (parts.length === 1) pool = COMMAND_NAMES;
-  else if (parts.length === 2 && ['open', 'cd'].includes((parts[0] ?? '').toLowerCase()))
-    pool = config.projects.map((p) => p.slug);
+  if (parts.length === 1) pool = commandNames(config.context);
+  else if (parts.length === 2 && head === 'open') pool = slugs;
+  else if (parts.length === 2 && head === 'cd') pool = [...Object.keys(PAGES), ...slugs];
   else return { kind: 'none' };
   const matches = pool.filter((c) => c.startsWith(last));
   if (matches.length === 0) return { kind: 'none' };

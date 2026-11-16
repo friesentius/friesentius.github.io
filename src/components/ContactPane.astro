@@ -1,6 +1,6 @@
 ---
+import ContactEmail from './ContactEmail.astro';
 import Pane from './Pane.astro';
-import Placeholder from './Placeholder.astro';
 import { site } from '../data/site';
 
 const host = (url: string) => new URL(url).host + new URL(url).pathname.replace(/\/$/, '');
@@ -21,13 +21,7 @@ const host = (url: string) => new URL(url).host + new URL(url).pathname.replace(
     </li>
     <li class="rv">
       <span class="k">email</span>
-      {site.email ? (
-        <a href={`mailto:${site.email}`}>{site.email}</a>
-      ) : (
-        <span>
-          <Placeholder>[public email address]</Placeholder>
-        </span>
-      )}
+      <ContactEmail />
     </li>
   </ul>
 </Pane>

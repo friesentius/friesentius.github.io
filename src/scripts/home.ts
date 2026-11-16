@@ -11,8 +11,9 @@ import {
   syncReveal,
   typeInto,
 } from './effects';
+import { setupChrome } from './chrome';
 import { setupPanes } from './panes';
-import { motionOK, onMotionChange, setMotion, systemReducedMotion, toggleTheme } from './prefs';
+import { motionOK, onMotionChange } from './prefs';
 import { createTerminal } from './terminal';
 
 interface SiteData {
@@ -23,19 +24,7 @@ interface SiteData {
 export function start(): void {
   const data = JSON.parse(document.getElementById('site-data')?.textContent ?? '{}') as SiteData;
 
-  const themeBtn = document.getElementById('themeBtn');
-  themeBtn?.addEventListener('click', () => toggleTheme(themeBtn));
-  const motionBtn = document.getElementById('motionBtn');
-  motionBtn?.addEventListener('click', () => setMotion(!motionOK()));
-  // The button cannot override the OS setting; say so (phones show a short label).
-  const syncMotionTitle = () => {
-    if (motionBtn)
-      motionBtn.title = systemReducedMotion()
-        ? 'Off: your system asks for reduced motion'
-        : 'Turn animations on or off';
-  };
-  syncMotionTitle();
-
+  setupChrome();
   setupPanes();
   setupScramble(isBooting);
   startClock();
@@ -60,7 +49,6 @@ export function start(): void {
   }
 
   onMotionChange(() => {
-    syncMotionTitle();
     if (!motionOK()) {
       finishTyping();
       finishBoot(true);

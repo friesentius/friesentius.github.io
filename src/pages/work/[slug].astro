@@ -1,0 +1,261 @@
+---
+import Copy from '../../components/Copy.astro';
+import DialIllustration from '../../components/DialIllustration.astro';
+import Pane from '../../components/Pane.astro';
+import Placeholder from '../../components/Placeholder.astro';
+import Page from '../../layouts/Page.astro';
+import { getProjects, host, projectPath, type Project } from '../../data/projects';
+import { site } from '../../data/site';
+
+// One case study per project, all from the same template (the approved
+// Neokeys mockup). Facts come from the project's frontmatter; narrative the
+// owner has not written yet renders as marked placeholders.
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.data.route ?? project.id },
+    props: {
+      project,
+      prev: projects[(i - 1 + projects.length) % projects.length]!,
+      next: projects[(i + 1) % projects.length]!,
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  prev: Project;
+  next: Project;
+}
+
+const { project, prev, next } = Astro.props;
+const { id, data } = project;
+const cs = data.caseStudy;
+const slug = data.route ?? id;
+const title = data.name.toLowerCase();
+
+// Section numbers follow the panes actually shown.
+let n = 0;
+const num = () => String(++n).padStart(2, '0');
+const nums = {
+  problem: num(),
+  approach: num(),
+  illustration: cs.illustration ? num() : '',
+  shots: num(),
+  stack: num(),
+  result: num(),
+  more: num(),
+};
+let i = 1;
+const idx = () => ++i;
+---
+
+<Page
+  title={`${data.name} ${data.caseStudyLabel}`}
+  description={`${data.name}: ${data.summary.replace(/\.$/, '')}. A ${data.caseStudyLabel} by ${site.name ?? site.handle}.`}
+  current="work"
+  cwd={`~/work/${slug}`}
+  chips={['work', 'cv', 'home', 'help']}
+  promptIndex={10}
+>
+  <Pane
+    id="case"
+    index={0}
+    marker="1"
+    title={`~/work/${slug}`}
+    meta={data.caseStudyLabel}
+    class="c-hero"
+    bodyClass="page-head"
+    labelledby="h-case"
+  >
+    <p class="crumb">
+      <a href="/">~</a> / <a href="/work">work</a> / {slug}
+    </p>
+    <h1 class="page-h1" id="h-case">
+      <span data-scramble>{title}</span>
+    </h1>
+    <p class="sub">
+      {data.summary.replace(/\.?$/, '.')}
+      {data.summaryPlaceholder && <Placeholder>[{data.summaryPlaceholder}]</Placeholder>}
+    </p>
+    <p>
+      <Copy value={cs.intro} />
+    </p>
+    <div class="cta">
+      {data.repo && (
+        <a class="btn" href={data.repo}>
+          repo ↗
+        </a>
+      )}
+      {data.site && (
+        <a class="btn" href={data.site}>
+          {host(data.site)} ↗
+        </a>
+      )}
+      <a class="btn ghost" href="/work">
+        cd ../work
+      </a>
+    </div>
+  </Pane>
+
+  <Pane id="meta" index={1} marker="i" title="meta" meta={`stat ${id}`} class="c-meta">
+    <ul class="kv">
+      <li>
+        <span class="k">type</span>
+        <span>{data.typeLabel}</span>
+      </li>
+      {data.licence && (
+        <li>
+          <span class="k">licence</span>
+          <span>{data.licence}</span>
+        </li>
+      )}
+      {data.repo && (
+        <li>
+          <span class="k">repo</span>
+          <a href={data.repo}>{new URL(data.repo).pathname.slice(1)}</a>
+        </li>
+      )}
+      {data.site && (
+        <li>
+          <span class="k">site</span>
+          <a href={data.site}>{host(data.site)}</a>
+        </li>
+      )}
+      {cs.facts.map((f) => (
+        <li>
+          <span class="k">{f.label}</span>
+          {f.href ? (
+            <a href={f.href}>
+              <Copy value={f.value} />
+            </a>
+          ) : (
+            <span>
+              <Copy value={f.value} />
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </Pane>
+
+  <Pane
+    id="problem"
+    index={idx()}
+    marker={nums.problem}
+    title="problem"
+    meta="why"
+    class="c-half rv"
+    bodyClass="prose"
+  >
+    {cs.problem.map((c) => (
+      <p>
+        <Copy value={c} />
+      </p>
+    ))}
+  </Pane>
+
+  <Pane
+    id="approach"
+    index={idx()}
+    marker={nums.approach}
+    title="approach"
+    meta="how"
+    class="c-half rv"
+  >
+    <ol class="steps">
+      {cs.approach.map((c) => (
+        <li>
+          <span>
+            <Copy value={c} />
+          </span>
+        </li>
+      ))}
+    </ol>
+  </Pane>
+
+  {cs.illustration === 'dial' && (
+    <Pane
+      id="dial"
+      index={idx()}
+      marker={nums.illustration}
+      title="the dial"
+      meta="illustration"
+      class="c-dial rv"
+    >
+      <DialIllustration />
+    </Pane>
+  )}
+
+  <Pane
+    id="screenshots"
+    index={idx()}
+    marker={nums.shots}
+    title="screenshots"
+    meta="ls ./img"
+    class:list={[cs.illustration ? 'c-shots' : 'c-full', 'rv']}
+  >
+    <div class:list={['shots', `shots-${cs.shots.map((s) => s.shape[0]).join('')}`]}>
+      {cs.shots.map((s) => (
+        <div class:list={['shot', s.shape]}>
+          <Placeholder>[{s.placeholder}]</Placeholder>
+        </div>
+      ))}
+    </div>
+    <p class="meta">
+      Real screenshots or a short screen recording go here; frames are placeholders.
+    </p>
+  </Pane>
+
+  <Pane id="stack" index={idx()} marker={nums.stack} title="stack" meta="deps" class="c-half rv">
+    <ul class="chiprow" aria-label="Stack">
+      {cs.stack.map((c) => (
+        <li class="tagc">
+          <Copy value={c} />
+        </li>
+      ))}
+    </ul>
+  </Pane>
+
+  <Pane
+    id="result"
+    index={idx()}
+    marker={nums.result}
+    title="result"
+    meta="status"
+    class="c-half rv"
+    bodyClass="prose"
+  >
+    {cs.result.map((c) => (
+      <p>
+        <Copy value={c} />
+      </p>
+    ))}
+  </Pane>
+
+  <Pane
+    id="more"
+    index={idx()}
+    marker={nums.more}
+    title="more work"
+    meta="prev / next"
+    class="c-full rv"
+  >
+    <nav class="pager" aria-label="Other projects">
+      <a href={projectPath(prev)}>
+        <span class="dirl">&lt;- prev</span>
+        <span class="nm">{prev.id}</span>
+      </a>
+      <a href={projectPath(next)} class="r">
+        <span class="dirl">next -&gt;</span>
+        <span class="nm">{next.id}</span>
+      </a>
+    </nav>
+  </Pane>
+</Page>
+
+<script>
+  import { setupDial } from '../../scripts/dial';
+  setupDial();
+</script>

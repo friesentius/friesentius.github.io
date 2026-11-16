@@ -1,12 +1,10 @@
-// Tiling-window behaviour: the active pane, project tiles, workspace links and
-// the 1-3 jump keys.
+// Tiling-window behaviour: the active pane and the home page's project tiles.
 
-import { isBooting } from './boot';
 import { motionOK } from './prefs';
 
 const panes = () => Array.from(document.querySelectorAll<HTMLElement>('.pane'));
 
-/** Mark a pane active and highlight its workspace in the top bar, if it has one. */
+/** Mark a pane active and light its workspace tab in the top bar, if it has one. */
 export function setActive(pane: Element | null): void {
   panes().forEach((p) => p.classList.toggle('active', p === pane));
   document.querySelectorAll<HTMLAnchorElement>('.ws a[data-ws]').forEach((a) => {
@@ -42,11 +40,6 @@ export function setTile(tile: HTMLDetailsElement, open: boolean): void {
   } else apply();
 }
 
-export function expandTile(id: string): void {
-  const tile = document.getElementById(id);
-  if (tile instanceof HTMLDetailsElement) setTile(tile, true);
-}
-
 export function setupPanes(): void {
   panes().forEach((p) => p.addEventListener('pointerdown', () => setActive(p)));
 
@@ -59,24 +52,7 @@ export function setupPanes(): void {
     });
   });
 
-  // Workspace links jump like the 1-3 keys. Their href still works without JavaScript.
-  document.querySelectorAll<HTMLAnchorElement>('.ws a[data-ws]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      gotoPane(a.dataset.ws!);
-    });
-  });
-
-  // Keys 1-3 jump between workspaces, like a tiling window manager.
-  const keys: Record<string, string> = { '1': 'work', '2': 'cv', '3': 'contact' };
-  document.addEventListener('keydown', (e) => {
-    if (isBooting() || e.metaKey || e.ctrlKey || e.altKey) return;
-    const target = e.target as HTMLElement | null;
-    if (target?.closest('input, textarea, select, [contenteditable]')) return;
-    const id = keys[e.key];
-    if (id) {
-      e.preventDefault();
-      gotoPane(id);
-    }
-  });
+  // Arriving on a pane's hash (a /#contact link from another page) lights its tab.
+  const hashed = location.hash && document.getElementById(location.hash.slice(1));
+  if (hashed) setActive(hashed.closest('.pane'));
 }
