@@ -17,9 +17,10 @@ export const projectPath = (p: Project): string => `/work/${p.data.route ?? p.id
 export const host = (url: string): string => new URL(url).host;
 
 /** Everything the prompt needs, generated from the same data as the pages. */
-export function shellConfig(projects: Project[], context: ShellContext): ShellConfig {
+export function shellConfig(projects: Project[], context: ShellContext, cwd: string): ShellConfig {
   return {
     context,
+    cwd,
     handle: site.handle,
     name: site.name,
     github: site.github,
@@ -27,6 +28,7 @@ export function shellConfig(projects: Project[], context: ShellContext): ShellCo
     projects: [
       ...projects.map((p) => ({
         slug: p.id,
+        ...(p.data.route && p.data.route !== p.id ? { aliases: [p.data.route] } : {}),
         summary: p.data.summary,
         href: projectPath(p),
         caseStudy: true,

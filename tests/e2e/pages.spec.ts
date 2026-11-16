@@ -117,6 +117,15 @@ test.describe('prompt', () => {
     await at(page, /\/work\/potful\/?$/);
     await run(page, 'cd ..');
     await at(page, /\/work\/?$/);
+    await run(page, 'cd ..');
+    await at(page, /\/$/);
+    await page.goto('/cv');
+    await run(page, 'cd ..');
+    await at(page, /\/$/);
+    await page.goto('/work');
+    await run(page, 'open internal-tools');
+    await at(page, /\/work\/internal-tools\/?$/);
+    await page.goto('/work');
     await page.getByRole('button', { name: 'open neokeys' }).click();
     await at(page, /\/work\/neokeys\/?$/);
     await run(page, 'contact');

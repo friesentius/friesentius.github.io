@@ -38,6 +38,8 @@ export type Effect =
 export interface ShellProject {
   /** What `open` takes, e.g. `neokeys`. */
   slug: string;
+  /** Other names `open` and `cd` accept, e.g. the case study's route. */
+  aliases?: string[];
   summary: string;
   /** Where `open` goes: the case study, or a pane on the home page. */
   href: string;
@@ -58,6 +60,8 @@ export type ShellContext = 'home' | 'page';
 
 export interface ShellConfig {
   context: ShellContext;
+  /** Working directory shown in the prompt, e.g. `~/work/kanso`; `cd ..` leaves it. */
+  cwd: string;
   handle: string;
   /** Owner's display name, or null while it is still a placeholder. */
   name: string | null;
@@ -184,7 +188,7 @@ const COMMANDS: Command[] = [
           lines: [text('err', 'usage: open <name>. try ', strong('ls'))],
           effects: [],
         };
-      const project = config.projects.find((p) => p.slug === arg);
+      const project = config.projects.find((p) => p.slug === arg || p.aliases?.includes(arg));
       if (!project) return { lines: [text('err', `open: no such project: ${arg}`)], effects: [] };
       const parts: Part[] = [`opening ${project.slug}`];
       if (project.url) parts.push(' (', link(project.url), ')');
@@ -299,7 +303,7 @@ export function commandNames(context: ShellContext): string[] {
 /** `cd` goes to a page (`cd cv`, `cd ~`, `cd ..`) or, failing that, opens a project. */
 function cd(arg: string, config: ShellConfig, state: ShellState): Result {
   if (!arg || arg === '~' || arg === '/') return go('home');
-  if (arg === '..') return config.context === 'page' ? go('work') : go('home');
+  if (arg === '..') return /^~\/work\/./.test(config.cwd) ? go('work') : go('home');
   if (Object.hasOwn(PAGES, arg)) return go(arg as keyof typeof PAGES);
   return COMMANDS.find((c) => c.name === 'open')!.run(arg, config, state);
 }
@@ -339,7 +343,7 @@ export function complete(value: string, config: ShellConfig): Completion {
   const parts = value.split(' ');
   const last = (parts[parts.length - 1] ?? '').toLowerCase();
   const head = (parts[0] ?? '').toLowerCase();
-  const slugs = config.projects.map((p) => p.slug);
+  const slugs = config.projects.flatMap((p) => [p.slug, ...(p.aliases ?? [])]);
   let pool: readonly string[];
   if (parts.length === 1) pool = commandNames(config.context);
   else if (parts.length === 2 && head === 'open') pool = slugs;

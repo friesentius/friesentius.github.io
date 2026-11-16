@@ -12,6 +12,7 @@ import {
 
 const config: ShellConfig = {
   context: 'home',
+  cwd: '~',
   handle: 'friesentius',
   name: null,
   github: 'https://github.com/friesentius',
@@ -38,7 +39,22 @@ const config: ShellConfig = {
 };
 
 /** The one-line prompt on every page but home. */
-const page: ShellConfig = { ...config, context: 'page' };
+const page: ShellConfig = { ...config, context: 'page', cwd: '~/work/kanso' };
+
+/** A project whose case study route differs from its listed name. */
+const withTools: ShellConfig = {
+  ...config,
+  projects: [
+    ...config.projects,
+    {
+      slug: 'tools',
+      aliases: ['internal-tools'],
+      summary: 'Internal tools',
+      href: '/work/internal-tools',
+      caseStudy: true,
+    },
+  ],
+};
 
 const state: ShellState = { theme: 'dark', motion: true, systemReducedMotion: false };
 
@@ -107,6 +123,24 @@ describe('execute', () => {
     expect(to('cd ..', page)).toEqual([{ type: 'navigate', href: '/work' }]);
     expect(to('cd kanso')).toEqual([{ type: 'navigate', href: '/work/kanso' }]);
     expect(to('cd toString')).toEqual([]);
+  });
+
+  it('cd .. goes to the parent of the current page', () => {
+    const up = (cwd: string, context: ShellConfig['context'] = 'page') =>
+      execute('cd ..', { ...config, context, cwd }, state).effects;
+    expect(up('~/work/kanso')).toEqual([{ type: 'navigate', href: '/work' }]);
+    expect(up('~/work')).toEqual([{ type: 'navigate', href: '/' }]);
+    expect(up('~/cv')).toEqual([{ type: 'navigate', href: '/' }]);
+    expect(up('~', 'home')).toEqual([{ type: 'navigate', href: '/' }]);
+  });
+
+  it('open and cd accept a project alias as well as its listed name', () => {
+    const to = (input: string) => execute(input, withTools, state).effects;
+    const tools = [{ type: 'navigate', href: '/work/internal-tools' }];
+    expect(to('open tools')).toEqual(tools);
+    expect(to('open internal-tools')).toEqual(tools);
+    expect(to('cd internal-tools/')).toEqual(tools);
+    expect(plain(execute('ls', withTools, state).lines)).toContain('tools/ | Internal tools');
   });
 
   it('prints the external link when a project has one', () => {
@@ -255,6 +289,15 @@ describe('complete', () => {
       kind: 'candidates',
       candidates: ['neokeys', 'kanso', 'potful', 'matrix'],
     });
+  });
+
+  it('completes project aliases after open and cd', () => {
+    expect(complete('open int', withTools)).toEqual({
+      kind: 'replace',
+      value: 'open internal-tools',
+    });
+    expect(complete('cd int', withTools)).toEqual({ kind: 'replace', value: 'cd internal-tools' });
+    expect(complete('open to', withTools)).toEqual({ kind: 'replace', value: 'open tools' });
   });
 
   it('does nothing for empty input, no match, or other arguments', () => {

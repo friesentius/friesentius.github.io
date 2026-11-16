@@ -16,7 +16,7 @@ import type { BootLine } from '../scripts/boot';
 const projects = await getProjects();
 
 // Everything the page script needs, generated from the same data as the panes.
-const shell = shellConfig(projects, 'home');
+const shell = shellConfig(projects, 'home', '~');
 
 const boot: BootLine[] = [
   { label: 'probing display', value: 'display' },

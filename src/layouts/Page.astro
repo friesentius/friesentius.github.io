@@ -23,7 +23,7 @@ interface Props {
 }
 
 const { title, description, current, cwd, chips, promptIndex } = Astro.props;
-const shell = shellConfig(await getProjects(), 'page');
+const shell = shellConfig(await getProjects(), 'page', cwd);
 ---
 
 <Base title={`${title} - ${displayName}`} description={description}>
