@@ -1,0 +1,78 @@
+---
+import Placeholder from './Placeholder.astro';
+import { site } from '../data/site';
+
+interface Props {
+  /** Words the rotating line cycles through. */
+  words: string[];
+}
+
+const { words } = Astro.props;
+const allWords = `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`;
+---
+
+<section class="pane p-hero" id="top" style="--i:0" aria-labelledby="h-name">
+  <div class="pt">
+    <span>
+      <span class="n" aria-hidden="true">
+        0
+      </span>
+      ~/
+    </span>
+    <span class="pt-r">tty1</span>
+  </div>
+  <div class="pb hero">
+    <p class="kicker">
+      <span class="pr">$</span> whoami
+    </p>
+    <h1 id="h-name">
+      {site.name ? (
+        <span data-scramble>{site.name}</span>
+      ) : (
+        <Placeholder>
+          <span data-scramble>[Full name]</span>
+        </Placeholder>
+      )}
+    </h1>
+    <p class="handle">
+      <span data-scramble>{site.handle}</span>
+      <span class="cursor" aria-hidden="true"></span>
+    </p>
+    <p class="tagline" id="tagline">
+      {site.tagline ? (
+        <span data-type>{site.tagline}</span>
+      ) : (
+        <Placeholder>
+          <span data-type>[One-line positioning statement: what you build, and for whom]</span>
+        </Placeholder>
+      )}
+    </p>
+    <p class="rot-line">
+      <span class="pr" aria-hidden="true">
+        &gt;
+      </span>
+      <span class="w">behind</span>
+      <span class="rot" id="rot" aria-hidden="true">
+        {words.map((w, i) => (
+          <span class:list={{ 'is-on': i === 0 }}>{w}</span>
+        ))}
+        <span class="static">{allWords}</span>
+      </span>
+      <span class="sr">{allWords}</span>
+    </p>
+    <div class="cta">
+      <a class="btn" href="/work">
+        ./work
+      </a>
+      <a class="btn ghost" href="/cv">
+        cat cv.txt
+      </a>
+    </div>
+    <p class="sys" aria-hidden="true">
+      <span class="dims" id="sysDim">
+        tty: --
+      </span>
+      <span>host: static site</span>
+    </p>
+  </div>
+</section>

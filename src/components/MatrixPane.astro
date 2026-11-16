@@ -1,0 +1,28 @@
+---
+import Pane from './Pane.astro';
+import { site } from '../data/site';
+
+const { company } = site;
+---
+
+<Pane
+  id="matrix"
+  index={3}
+  marker="m"
+  title="matrix"
+  meta={`-> ${new URL(company.url).host}`}
+  class="p-matrix"
+  bodyClass="mx"
+>
+  <p class="lead">
+    <span class="pr">$</span> readlink matrix
+  </p>
+  <p class="big">{company.name}</p>
+  <p>
+    An {company.region} company run by {site.handle}.
+  </p>
+  <p>{company.blurb}</p>
+  <a class="btn" href={company.url}>
+    {new URL(company.url).host} ↗
+  </a>
+</Pane>

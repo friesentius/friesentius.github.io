@@ -1,0 +1,105 @@
+---
+import Pane from '../../components/Pane.astro';
+import Placeholder from '../../components/Placeholder.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import Page from '../../layouts/Page.astro';
+import { getProjects } from '../../data/projects';
+import { site } from '../../data/site';
+
+const projects = await getProjects();
+const { company } = site;
+const filters = [
+  { f: 'all', label: 'all' },
+  { f: 'plugin', label: 'plugin' },
+  { f: 'theme', label: 'theme' },
+  { f: 'web-app', label: 'web app' },
+  { f: 'tooling', label: 'tooling' },
+];
+---
+
+<Page
+  title="Work"
+  description={`Projects by ${site.name ?? site.handle}: ${projects.map((p) => p.data.name).join(', ')}.`}
+  current="work"
+  cwd="~/work"
+  chips={['open neokeys', 'cv', 'home', 'help']}
+  promptIndex={3}
+>
+  <Pane
+    id="intro"
+    index={0}
+    marker="1"
+    title="~/work"
+    meta="index"
+    class="p-intro"
+    bodyClass="page-head"
+    labelledby="h-work"
+  >
+    <p class="crumb">
+      <a href="/">~</a> / work
+    </p>
+    <h1 class="page-h1" id="h-work">
+      <span data-scramble>work/</span>
+    </h1>
+    <p class="sub">
+      <Placeholder>
+        [One or two lines introducing the work: what you like building and for whom]
+      </Placeholder>
+    </p>
+  </Pane>
+
+  <Pane
+    id="matrix"
+    index={1}
+    marker="m"
+    title="matrix"
+    meta={`-> ${new URL(company.url).host}`}
+    class="p-mx"
+    bodyClass="mx"
+  >
+    <p class="big">{company.name}</p>
+    <p>
+      An {company.region} company run by {site.handle}.
+    </p>
+    <p class="mx-blurb">{company.blurb}</p>
+    <a class="btn" href={company.url}>
+      {new URL(company.url).host} ↗
+    </a>
+  </Pane>
+
+  <Pane id="projects" index={2} marker="$" title="projects" meta="ls -l" class="p-grid">
+    <div class="filters" role="group" aria-label="Filter projects by type">
+      {filters.map((x) => (
+        <button
+          class="fchip"
+          type="button"
+          data-f={x.f}
+          aria-pressed={x.f === 'all' ? 'true' : 'false'}
+        >
+          {x.label}
+        </button>
+      ))}
+    </div>
+    <p class="lscmd">
+      <span>
+        <span class="pr">$</span> <b id="lsCmd">ls ~/work</b>
+      </span>
+      <span class="cnt" id="lsCount" role="status">
+        {projects.length} entries
+      </span>
+    </p>
+    <div class="wgrid">
+      {projects.map((p) => (
+        <WorkCard project={p} />
+      ))}
+    </div>
+    <p class="empty" id="wEmpty" hidden>
+      No projects of that type yet.
+    </p>
+  </Pane>
+</Page>
+
+<script>
+  import { setupFilters } from '../../scripts/work';
+  setupFilters();
+</script>

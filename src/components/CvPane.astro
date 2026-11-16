@@ -1,0 +1,31 @@
+---
+import Pane from './Pane.astro';
+import Placeholder from './Placeholder.astro';
+import { cv } from '../data/cv';
+
+// The CV teaser: the latest roles and a few skills, then the full CV page.
+const roles = cv.experience.slice(0, 3);
+const skills = cv.skills.flatMap((g) => g.skills).slice(0, 4);
+---
+
+<Pane id="cv" index={4} marker="2" title="cv" meta="cv.txt" class="p-cv">
+  <p class="lead rv">
+    <span class="pr">$</span> head cv.txt
+  </p>
+  <ol class="cv">
+    {roles.map((r) => (
+      <li class="rv">
+        <span>
+          {r.title ?? <Placeholder>[Title]</Placeholder>} at {r.company},{' '}
+          <span class="cv-years">{r.years}</span>
+        </span>
+      </li>
+    ))}
+  </ol>
+  <p class="meta rv">skills: {skills.join(', ')}</p>
+  <div class="cta rv mt-3.5">
+    <a class="btn ghost" href="/cv">
+      cat cv.txt -&gt;
+    </a>
+  </div>
+</Pane>

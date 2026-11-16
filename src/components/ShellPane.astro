@@ -1,0 +1,58 @@
+---
+import Pane from './Pane.astro';
+
+// Tappable shortcuts for phones; each one types itself into the prompt.
+const chips = ['help', 'ls', 'open neokeys', 'cv', 'contact', 'theme', 'reboot'];
+---
+
+<Pane
+  id="term"
+  index={1}
+  marker="$"
+  title="shell"
+  meta="interactive"
+  class="p-term"
+  bodyClass="term"
+  focusable={false}
+>
+  <div class="out-frame">
+    <div
+      id="out"
+      class="out"
+      role="log"
+      aria-live="polite"
+      aria-label="Terminal output"
+      tabindex="0"
+    >
+      <p>
+        Everything here is also in the panes. This is a working prompt: type <b>help</b> or tap a
+        command below.
+      </p>
+    </div>
+  </div>
+  <form id="cmdForm" class="cmdline" autocomplete="off">
+    <label for="cmd" class="prompt">
+      friesentius@web:~$
+    </label>
+    <input
+      id="cmd"
+      name="cmd"
+      type="text"
+      spellcheck="false"
+      autocapitalize="off"
+      autocorrect="off"
+      enterkeyhint="go"
+      aria-describedby="chipsHint"
+    />
+  </form>
+  <div class="chips" role="group" aria-label="Quick commands">
+    {chips.map((c) => (
+      <button class="chip" type="button" data-cmd={c}>
+        {c}
+      </button>
+    ))}
+  </div>
+  <p class="hint" id="chipsHint">
+    tab completes, up/down for history, keys 0-3 switch pages
+  </p>
+</Pane>

@@ -1,0 +1,66 @@
+---
+// One tile of the tiling window manager: a title bar plus a body.
+interface Props {
+  id: string;
+  /** Position in the tiling order; staggers the tile-in animation. */
+  index: number;
+  /** Workspace marker shown before the title (1, 2, m, $ ...). */
+  marker: string;
+  title: string;
+  /** Right-hand side of the title bar. */
+  meta: string;
+  class?: string;
+  bodyClass?: string;
+  /** Focusable as a jump target (keys 0-3 and the shell's goto). */
+  focusable?: boolean;
+  /**
+   * The id of the heading that names the pane, when it is not the title bar.
+   * A page's first pane is named by its <h1>, and its title bar is then a
+   * plain path label rather than an <h2>.
+   */
+  labelledby?: string;
+}
+
+const {
+  id,
+  index,
+  marker,
+  title,
+  meta,
+  class: className,
+  bodyClass,
+  focusable = true,
+  labelledby,
+} = Astro.props;
+const headingId = labelledby ?? `h-${id}`;
+---
+
+<section
+  class:list={['pane', className]}
+  id={id}
+  style={`--i:${index}`}
+  tabindex={focusable ? -1 : undefined}
+  aria-labelledby={headingId}
+>
+  <div class="pt">
+    {labelledby ? (
+      <span>
+        <span class="n" aria-hidden="true">
+          {marker}
+        </span>
+        {title}
+      </span>
+    ) : (
+      <h2 id={headingId}>
+        <span class="n" aria-hidden="true">
+          {marker}
+        </span>
+        <span data-scramble>{title}</span>
+      </h2>
+    )}
+    <span class="pt-r">{meta}</span>
+  </div>
+  <div class:list={['pb', bodyClass]}>
+    <slot />
+  </div>
+</section>
