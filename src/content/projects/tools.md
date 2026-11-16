@@ -1,7 +1,8 @@
 ---
 name: Internal tools
 summary: Custom internal tools that replace manual work with automated, integrated workflows, built around how the business actually operates.
-detailPlaceholder: 'Placeholder: what can be shown publicly, screenshots with sensitive data removed'
+detail:
+  placeholder: 'Placeholder: what can be shown publicly, screenshots with sensitive data removed'
 tags: [internal, tooling]
 type: tooling
 typeLabel: Internal tooling

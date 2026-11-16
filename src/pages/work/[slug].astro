@@ -1,4 +1,5 @@
 ---
+import { getImage, Picture } from 'astro:assets';
 import Copy from '../../components/Copy.astro';
 import DialIllustration from '../../components/DialIllustration.astro';
 import Pane from '../../components/Pane.astro';
@@ -8,8 +9,8 @@ import { getProjects, host, projectPath, type Project } from '../../data/project
 import { site } from '../../data/site';
 
 // One case study per project, all from the same template (the approved
-// Neokeys mockup). Facts come from the project's frontmatter; narrative the
-// owner has not written yet renders as marked placeholders.
+// Neokeys mockup). Facts and narrative come from the project's frontmatter;
+// anything not written yet renders as a marked placeholder.
 
 export async function getStaticPaths() {
   const projects = await getProjects();
@@ -49,6 +50,19 @@ const nums = {
 };
 let i = 1;
 const idx = () => ++i;
+
+// Each real screenshot links to a full-size copy; the frame itself shows a
+// responsive picture (AVIF, with WebP for older browsers) sized for its slot.
+const shots = await Promise.all(
+  cs.shots.map(async (s) =>
+    'src' in s ? { ...s, full: (await getImage({ src: s.src, format: 'webp' })).src } : s,
+  ),
+);
+const sizes = {
+  wide: '(max-width: 560px) calc(100vw - 48px), (max-width: 1100px) 60vw, 640px',
+  tall: '(max-width: 560px) calc(50vw - 30px), (max-width: 1100px) 20vw, 220px',
+};
+const widths = { wide: [640, 960, 1280, 1600], tall: [240, 360, 480, 720] };
 ---
 
 <Page
@@ -197,17 +211,32 @@ const idx = () => ++i;
     class:list={[cs.illustration ? 'c-shots' : 'c-full', 'rv']}
   >
     <div class:list={['shots', `shots-${cs.shots.map((s) => s.shape[0]).join('')}`]}>
-      {cs.shots.map((s) => (
-        <div class:list={['shot', s.shape]}>
-          {/* The wrapper keeps the label inline, so a wrapped label stays a tight highlight. */}
-          <span>
-            <Placeholder>[{s.placeholder}]</Placeholder>
-          </span>
-        </div>
-      ))}
+      {shots.map((s) =>
+        'src' in s ? (
+          <a class:list={['shot', 'real', s.shape]} href={s.full}>
+            <Picture
+              src={s.src}
+              alt={s.alt}
+              formats={['avif']}
+              fallbackFormat="webp"
+              widths={widths[s.shape]}
+              sizes={sizes[s.shape]}
+            />
+          </a>
+        ) : (
+          <div class:list={['shot', s.shape]}>
+            {/* The wrapper keeps the label inline, so a wrapped label stays a tight highlight. */}
+            <span>
+              <Placeholder>[{s.placeholder}]</Placeholder>
+            </span>
+          </div>
+        ),
+      )}
     </div>
     <p class="meta">
-      Real screenshots or a short screen recording go here; frames are placeholders.
+      {shots.every((s) => 'src' in s)
+        ? 'Screenshots of the real product; select one to see it full size.'
+        : 'Real screenshots or a short screen recording go here; frames are placeholders.'}
     </p>
   </Pane>
 

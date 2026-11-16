@@ -1,7 +1,7 @@
 ---
 name: Kanso
 summary: Obsidian theme
-detailPlaceholder: 'Case study placeholder: design goals, screenshots in light and dark'
+detail: 'A theme for Obsidian designed around focus, ported from the kanso.nvim colour scheme for Neovim, in five variants: Zen, Ink, Mist, Void and Pearl.'
 tags: [obsidian, theme, css]
 type: theme
 typeLabel: Obsidian theme
@@ -10,8 +10,7 @@ visual: kanso
 repo: https://github.com/friesentius/obsidian-kanso
 licence: MIT
 caseStudy:
-  intro:
-    placeholder: One-paragraph summary of the theme, who it is for and why it exists
+  intro: 'Kanso is an Obsidian theme designed for focus. It is based on kanso.nvim, the Neovim theme by webhooked, and it is for people who want a clean, noiseless place to write their notes.'
   facts:
     - label: based on
       value: kanso.nvim
@@ -22,25 +21,26 @@ caseStudy:
       value: Obsidian community themes
       href: https://community.obsidian.md/themes/kanso
     - label: started
-      value:
-        placeholder: Year
+      value: '2026'
   problem:
-    - placeholder: What Kanso set out to do for Obsidian, two or three sentences
-    - placeholder: Why existing themes fell short, one or two sentences
+    - 'I wanted to bring a theme I loved, kanso.nvim, into a program I loved, Obsidian, so my notes would look and feel like my editor.'
+    - "There are plenty of good Obsidian themes. They just weren't Kanso."
   approach:
-    - placeholder: Key design decision one
-    - placeholder: Key design decision two
-    - placeholder: How the variants share one palette
+    - "Every colour comes from kanso.nvim. Its palette lives in one set of variables, and Obsidian's own colours for text, links, headings, tags and code are mapped onto them, so a note reads in the same colours as code in Neovim."
+    - "kanso.nvim's options carry over too: the active line highlight is its cursorline, and Dim inactive panes, Minimal mode and Saturated foreground are ported from its own settings, each a toggle in Style Settings."
+    - "Zen, Ink and Mist match kanso.nvim's dark variants: they share one set of colours and change only the background tones. Void puts the same colours on true black for OLED screens, and Pearl is kanso.nvim's light palette under the same variables."
   shots:
     - shape: wide
-      placeholder: 'Desktop screenshot: a note in a dark variant'
+      src: ../../assets/shots/kanso/zen.webp
+      alt: 'Kanso Zen, the default dark variant, in Obsidian on desktop: a note with coloured headings, a tag, a callout, styled task checkboxes and a code block, beside the file explorer with folder icons.'
     - shape: wide
-      placeholder: 'Desktop screenshot: Pearl, the light variant'
+      src: ../../assets/shots/kanso/pearl.webp
+      alt: 'Kanso Pearl, the light variant, in Obsidian on desktop: the same note and file explorer in its light palette.'
   stack:
     - CSS
     - Style Settings (optional)
     - Stylelint
   result:
-    - placeholder: Where it stands today and what users can do with it
-    - placeholder: What is next on the roadmap
+    - 'Kanso is listed in the Obsidian community themes. It styles Obsidian itself, Canvas included, and plugins like Excalidraw, Dataview, Kanban and Calendar.'
+    - 'Next is styling for more Obsidian plugins.'
 ---

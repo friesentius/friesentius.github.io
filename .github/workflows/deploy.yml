@@ -25,6 +25,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # The build prints the CV page to the downloadable PDF with Playwright's
+      # Chromium (scripts/cv-pdf.mjs), so the browser has to be installed.
+      - run: npx playwright install --with-deps chromium
       # Public values for the "show email" control (see worker/README.md).
       # Unset, the site shows "email coming soon".
       - run: npm run build

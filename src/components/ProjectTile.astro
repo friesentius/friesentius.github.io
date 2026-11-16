@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import Copy from './Copy.astro';
 import Placeholder from './Placeholder.astro';
 import TileVisual from './TileVisual.astro';
 import { host, projectPath } from '../data/projects';
@@ -29,7 +30,7 @@ const { id, data } = project;
   </summary>
   <div class="more-body">
     <p>
-      <Placeholder>[{data.detailPlaceholder}]</Placeholder>
+      <Copy value={data.detail} />
     </p>
     <ul class="tags" aria-label="Tags">
       {data.tags.map((t) => (

@@ -211,20 +211,75 @@ test.describe('case studies', () => {
     await expect(pager.locator('a').last()).toHaveAttribute('href', '/work/neokeys');
   });
 
-  test('facts are stated and narrative is marked placeholder', async ({ page }) => {
-    await page.goto('/work/neokeys');
+  test('facts and narrative are written, with real screenshots', async ({ page, request }) => {
+    for (const [path, shots] of [
+      ['/work/neokeys', 3],
+      ['/work/kanso', 2],
+      ['/work/potful', 3],
+    ] as const) {
+      await page.goto(path);
+      await expect(page.locator('main .ph')).toHaveCount(0);
+      await expect(page.locator('#meta')).toContainText('2026');
+      const imgs = page.locator('#screenshots .shot.real img');
+      await expect(imgs).toHaveCount(shots);
+      for (const img of await imgs.all()) {
+        await expect(img).toHaveAttribute('alt', /\S{3,}.{40,}/);
+        await img.scrollIntoViewIfNeeded();
+        await expect(img).toHaveJSProperty('complete', true);
+        expect(await img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+      }
+      // Each frame links to its full-size image.
+      for (const href of await page
+        .locator('#screenshots a.shot')
+        .evaluateAll((as) => as.map((a) => a.getAttribute('href')!))) {
+        const res = await request.get(href);
+        expect(res.status()).toBe(200);
+        expect(res.headers()['content-type']).toBe('image/webp');
+      }
+    }
     const meta = page.locator('#meta');
+    await page.goto('/work/neokeys');
     await expect(meta).toContainText('Obsidian plugin');
     await expect(meta).toContainText('MIT');
     await expect(meta.getByRole('link', { name: 'Obsidian community plugins' })).toHaveAttribute(
       'href',
       'https://community.obsidian.md/plugins/neokeys',
     );
+  });
+
+  test('the sticky top bar stays above the screenshots as they scroll under it', async ({
+    page,
+  }) => {
+    await page.goto('/work/kanso');
+    const shot = page.locator('#screenshots .shot.real').first();
+    await shot.scrollIntoViewIfNeeded();
+    const bar = await page.locator('.bar').boundingBox();
+    const box = await shot.boundingBox();
+    await page.evaluate((dy) => window.scrollBy(0, dy), box!.y - bar!.y - 4);
+    const x = (await shot.boundingBox())!.x + 20;
+    const y = bar!.y + bar!.height / 2;
+    expect(
+      await page.evaluate(
+        ([px, py]) =>
+          document.elementFromPoint(px, py)?.closest('.bar, #screenshots')?.className ?? null,
+        [x, y],
+      ),
+    ).toContain('bar');
+    expect(
+      await page.evaluate(
+        ([px, py]) => document.elementFromPoint(px, py)?.closest('#screenshots') !== null,
+        [x, bar!.y + bar!.height + 10],
+      ),
+    ).toBe(true);
+  });
+
+  test('internal tools keeps its narrative and screenshots as placeholders', async ({ page }) => {
+    await page.goto('/work/internal-tools');
     for (const id of ['problem', 'approach', 'result'])
       await expect(page.locator(`#${id} .ph`).first()).toBeVisible();
-    // Screenshot frames are placeholders until real screenshots are added.
     await expect(page.locator('#screenshots img')).toHaveCount(0);
-    await expect(page.locator('#screenshots .shot .ph')).toHaveCount(3);
+    await expect(page.locator('#screenshots .shot .ph')).toHaveCount(2);
+    await expect(page.locator('#screenshots')).toContainText('frames are placeholders');
   });
 
   test('only Neokeys has the dial, labelled as an illustration', async ({ page }) => {
@@ -256,13 +311,21 @@ test.describe('case studies', () => {
 });
 
 test.describe('cv', () => {
-  test('states the role, skills and keeps unknowns as placeholders', async ({ page }) => {
+  test('states the roles, skills and education, with no placeholders left', async ({ page }) => {
     await page.goto('/cv');
-    await expect(page.locator('#experience')).toContainText(
-      'IT Manager at Universal Fabricating Inc',
+    await expect(page.locator('main .ph')).toHaveCount(0);
+    await expect(page.locator('#reach')).toContainText('Ontario, Canada');
+    const roles = page.locator('#experience .glog > li');
+    await expect(roles).toHaveCount(2);
+    await expect(roles.nth(0)).toContainText('IT Manager at Universal Fabricating Inc');
+    await expect(roles.nth(0)).toContainText('Jun 2022 - present');
+    await expect(roles.nth(0).locator('ul > li')).toHaveCount(8);
+    await expect(roles.nth(1)).toContainText(
+      'Information Technology Technician at Universal Fabricating Inc',
     );
-    await expect(page.locator('#experience')).toContainText('2019 - present');
-    await expect(page.locator('#experience .glog > li')).toHaveCount(1);
+    await expect(roles.nth(1)).toContainText('Nov 2019 - Jul 2022');
+    // Listed by title and dates only.
+    await expect(roles.nth(1).locator('ul')).toHaveCount(0);
     await expect(page.locator('#skills .tagc')).toHaveCount(12);
     await expect(page.locator('#skills h3')).toHaveText([
       'software',
@@ -270,11 +333,32 @@ test.describe('cv', () => {
       'infrastructure',
       'leadership',
     ]);
+    await expect(page.locator('#education')).toContainText(
+      'Bachelor of Computer Science, University of Windsor, 2021',
+    );
+    // No certifications: the section is gone, not left empty.
+    await expect(page.locator('main')).not.toContainText('certification');
     // Until the Turnstile and Worker values are set, the email row says so.
     await expect(page.locator('[data-email-slot]')).toHaveText('email coming soon');
     await expect(page.getByRole('button', { name: 'show email' })).toHaveCount(0);
     await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
-    await expect(page.getByText('CV as PDF: coming soon')).toBeVisible();
+  });
+
+  test('the CV downloads as a PDF printed from this page', async ({ page, request }) => {
+    await page.goto('/cv');
+    const link = page.getByRole('link', { name: 'download CV (PDF)' });
+    await expect(link).toHaveAttribute('href', '/tyler-friesen-cv.pdf');
+    await expect(link).toHaveAttribute('download', '');
+    const res = await request.get('/tyler-friesen-cv.pdf');
+    expect(res.status()).toBe(200);
+    expect(res.headers()['content-type']).toBe('application/pdf');
+    const pdf = (await res.body()).toString('latin1');
+    expect(pdf.startsWith('%PDF-')).toBe(true);
+    expect(pdf).toContain('/Title (CV - Tyler Friesen)');
+    // Links point at the live site and profiles, never at the build machine,
+    // and there is no email address to link to.
+    expect(pdf).toContain('/URI (https://github.com/friesentius)');
+    expect(pdf).not.toMatch(/127\.0\.0\.1|localhost|mailto:/);
   });
 
   test('the print button opens the print dialog', async ({ page }) => {
