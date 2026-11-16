@@ -1,20 +1,34 @@
 ---
+// The tmux / i3 style bar on every page. Workspaces are real links; keys 0-3
+// follow them (src/scripts/chrome.ts).
+interface Props {
+  current: 'home' | 'work' | 'cv';
+}
+
+const { current } = Astro.props;
+
 const workspaces = [
-  { n: '1', id: 'work', label: 'Work' },
-  { n: '2', id: 'cv', label: 'CV' },
-  { n: '3', id: 'contact', label: 'Contact' },
+  { n: '0', href: '/', label: 'Home', page: 'home' },
+  { n: '1', href: '/work', label: 'Work', page: 'work' },
+  { n: '2', href: '/cv', label: 'CV', page: 'cv' },
+  // On the home page the Contact pane also lights this tab as you reach it.
+  { n: '3', href: '/#contact', label: 'Contact', ws: 'contact' },
 ];
 ---
 
 <header class="bar">
-  <a class="brand" href="#top">
+  <a class="brand" href={current === 'home' ? '#top' : '/'}>
     <span class="b">[</span>friesentius<span class="b">]</span>
   </a>
   <nav aria-label="Primary">
     <ol class="ws">
       {workspaces.map((w) => (
         <li>
-          <a href={`#${w.id}`} data-ws={w.id}>
+          <a
+            href={w.href}
+            data-ws={current === 'home' ? w.ws : undefined}
+            aria-current={w.page === current ? 'page' : undefined}
+          >
             <span class="n" aria-hidden="true">
               {w.n}
             </span>

@@ -1,0 +1,17 @@
+---
+import Placeholder from './Placeholder.astro';
+import { site } from '../data/site';
+
+// The value of every "email" contact row on the site. The address is kept out
+// of the HTML on purpose (scrapers); a later change replaces the placeholder
+// below with a "show email" button that reveals it on request. Keep every
+// email row on this component so that change has one place to land.
+---
+
+<span class="email-slot" data-email-slot>
+  {site.email ? (
+    <a href={`mailto:${site.email}`}>{site.email}</a>
+  ) : (
+    <Placeholder>[public email address]</Placeholder>
+  )}
+</span>

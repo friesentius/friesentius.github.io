@@ -1,6 +1,5 @@
 ---
 import Pane from './Pane.astro';
-import Placeholder from './Placeholder.astro';
 import { site } from '../data/site';
 
 const { company } = site;
@@ -22,9 +21,7 @@ const { company } = site;
   <p>
     An {company.region} company run by {site.handle}.
   </p>
-  <p>
-    <Placeholder>[One or two lines on what Matrix Automation does and who it serves]</Placeholder>
-  </p>
+  <p>{company.blurb}</p>
   <a class="btn" href={company.url}>
     {new URL(company.url).host} ↗
   </a>

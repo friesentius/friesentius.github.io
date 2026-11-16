@@ -1,0 +1,46 @@
+---
+import Placeholder from './Placeholder.astro';
+import TileVisual from './TileVisual.astro';
+import { host, projectPath, type Project } from '../data/projects';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const { id, data } = project;
+---
+
+<article class="wcard rv" id={`w-${id}`} data-type={data.type}>
+  <TileVisual kind={data.visual} size="card" />
+  <div class="wbody">
+    <h3 class="wname">
+      <span class="pr" aria-hidden="true">
+        ./
+      </span>
+      <span data-scramble>{id}</span>
+    </h3>
+    <p class="wd">
+      {data.summary}
+      {data.summaryPlaceholder && ' '}
+      {data.summaryPlaceholder && <Placeholder>[{data.summaryPlaceholder}]</Placeholder>}
+    </p>
+    <ul class="tags" aria-label="Tags">
+      {data.tags.map((t) => (
+        <li>{t}</li>
+      ))}
+    </ul>
+    <p class="wlinks">
+      <a href={projectPath(project)} aria-label={`${data.name} ${data.caseStudyLabel}`}>
+        {data.caseStudyLabel} -&gt;
+      </a>
+      {data.repo && (
+        <a href={data.repo} aria-label={`${data.name} repo on GitHub`}>
+          repo ↗
+        </a>
+      )}
+      {data.site && <a href={data.site}>{host(data.site)} ↗</a>}
+      {data.licence && <span class="tagc">{data.licence}</span>}
+    </p>
+  </div>
+</article>

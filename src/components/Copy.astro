@@ -1,0 +1,13 @@
+---
+import Placeholder from './Placeholder.astro';
+
+// Owner-written copy, or the marked placeholder prompt for copy still to come
+// (see `copy` in src/content.config.ts).
+interface Props {
+  value: string | { placeholder: string };
+}
+
+const { value } = Astro.props;
+---
+
+{typeof value === 'string' ? value : <Placeholder>[{value.placeholder}]</Placeholder>}

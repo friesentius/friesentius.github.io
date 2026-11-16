@@ -11,8 +11,14 @@ interface Props {
   meta: string;
   class?: string;
   bodyClass?: string;
-  /** Focusable as a jump target (keys 1-3 and the shell's goto). */
+  /** Focusable as a jump target (keys 0-3 and the shell's goto). */
   focusable?: boolean;
+  /**
+   * The id of the heading that names the pane, when it is not the title bar.
+   * A page's first pane is named by its <h1>, and its title bar is then a
+   * plain path label rather than an <h2>.
+   */
+  labelledby?: string;
 }
 
 const {
@@ -24,8 +30,9 @@ const {
   class: className,
   bodyClass,
   focusable = true,
+  labelledby,
 } = Astro.props;
-const headingId = `h-${id}`;
+const headingId = labelledby ?? `h-${id}`;
 ---
 
 <section
@@ -36,12 +43,21 @@ const headingId = `h-${id}`;
   aria-labelledby={headingId}
 >
   <div class="pt">
-    <h2 id={headingId}>
-      <span class="n" aria-hidden="true">
-        {marker}
+    {labelledby ? (
+      <span>
+        <span class="n" aria-hidden="true">
+          {marker}
+        </span>
+        {title}
       </span>
-      <span data-scramble>{title}</span>
-    </h2>
+    ) : (
+      <h2 id={headingId}>
+        <span class="n" aria-hidden="true">
+          {marker}
+        </span>
+        <span data-scramble>{title}</span>
+      </h2>
+    )}
     <span class="pt-r">{meta}</span>
   </div>
   <div class:list={['pb', bodyClass]}>
