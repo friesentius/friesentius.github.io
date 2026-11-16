@@ -12,7 +12,7 @@ const { id, data } = project;
 const host = (url: string) => new URL(url).host;
 ---
 
-<details class="tile rv" id={`p-${id}`} style={`view-transition-name: t-${id}`}>
+<details class="tile rv" id={`p-${id}`}>
   <summary class="tile-h">
     <TileVisual kind={data.visual} />
     <span class="tile-t">

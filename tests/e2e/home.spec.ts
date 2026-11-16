@@ -136,6 +136,32 @@ test.describe('command prompt', () => {
     await expect(page.locator('#out')).toContainText('reboot skipped: motion is off');
   });
 
+  test('theme reveal uncovers the whole page through one circle', async ({ page }) => {
+    // Every snapshot group in the view transition. A group other than root is
+    // animated on its own and escapes the circle clip on the root.
+    const groupsDuring = (selector: string) =>
+      page.evaluate(async (sel) => {
+        (document.querySelector(sel) as HTMLElement).click();
+        for (let i = 0; i < 60; i++) {
+          await new Promise(requestAnimationFrame);
+          const groups = document
+            .getAnimations()
+            .map((a) => (a.effect as KeyframeEffect | null)?.pseudoElement ?? '')
+            .filter((p) => p.startsWith('::view-transition-group'));
+          if (groups.length) return [...new Set(groups)].sort();
+        }
+        return [];
+      }, selector);
+
+    expect(await groupsDuring('#themeBtn')).toEqual(['::view-transition-group(root)']);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', /light|dark/);
+    await page.waitForTimeout(800);
+    // The tile morph still gives each tile its own group.
+    expect(await groupsDuring('#p-neokeys summary')).toContain(
+      '::view-transition-group(t-neokeys)',
+    );
+  });
+
   test('reboot replays the boot sequence', async ({ page }) => {
     await run(page, 'reboot');
     await expect(page.locator('html')).toHaveClass(/booting/);

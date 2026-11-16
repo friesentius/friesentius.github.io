@@ -27,7 +27,13 @@ export function setTile(tile: HTMLDetailsElement, open: boolean): void {
     tile.open = open;
   };
   if (motionOK() && typeof document.startViewTransition === 'function') {
-    document.startViewTransition(apply);
+    // Tiles get their own snapshot names only for this morph. Permanent names
+    // would also split them out of the theme reveal's circle.
+    const tiles = Array.from(document.querySelectorAll<HTMLElement>('.tile'));
+    tiles.forEach((t) => (t.style.viewTransitionName = `t-${t.id.slice(2)}`));
+    document.startViewTransition(apply).finished.finally(() => {
+      tiles.forEach((t) => (t.style.viewTransitionName = ''));
+    });
   } else apply();
 }
 
