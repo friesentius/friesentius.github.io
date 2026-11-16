@@ -3,6 +3,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 // The pages beyond home: the Work index, the four case studies and the CV.
 
+const MISSING = '/work/nope/deeper';
+
 const PAGES = [
   { path: '/work', h1: 'work/' },
   { path: '/work/neokeys', h1: 'neokeys' },
@@ -10,6 +12,8 @@ const PAGES = [
   { path: '/work/potful', h1: 'potful' },
   { path: '/work/internal-tools', h1: 'internal tools' },
   { path: '/cv', h1: 'Tyler Friesen' },
+  // Served for any address that does not exist; GitHub Pages does the same.
+  { path: MISSING, h1: '404' },
 ];
 
 /**
@@ -31,16 +35,26 @@ test.describe('every page', () => {
   for (const { path, h1 } of PAGES) {
     test(`${path} renders with the shared chrome and no console errors`, async ({ page }) => {
       const errors: string[] = [];
+      const notOk: string[] = [];
       page.on('console', (m) => {
         if (m.type() === 'error') errors.push(m.text());
       });
       page.on('pageerror', (e) => errors.push(e.message));
+      page.on('response', (r) => {
+        if (!r.ok()) notOk.push(new URL(r.url()).pathname);
+      });
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(h1);
       await expect(page.locator('#themeBtn')).toBeVisible();
       await expect(page.locator('#pIn')).toBeVisible();
       await expect(page).toHaveTitle(/ - Tyler Friesen$/);
-      expect(errors).toEqual([]);
+      if (path === MISSING) {
+        // The browser logs the missing document itself; nothing else may be missing.
+        expect(notOk).toEqual([path]);
+        expect(errors.filter((e) => !e.includes('404'))).toEqual([]);
+      } else {
+        expect(errors).toEqual([]);
+      }
     });
 
     for (const width of [360, 390, 820, 1440]) {

@@ -1,0 +1,99 @@
+---
+// The custom not-found page. GitHub Pages serves it for every address that
+// does not exist, at any depth, so every link and asset on it is absolute.
+// It is the working prompt (see Page.astro) plus one playful bit: a `find`
+// that searches the whole site for the missing path, fills its bar, and
+// reports zero matches.
+import Pane from '../components/Pane.astro';
+import Page from '../layouts/Page.astro';
+import { getProjects } from '../data/projects';
+
+// Home, Work and CV, plus one case study per project.
+const pageCount = 3 + (await getProjects()).length;
+
+const exits = [
+  { href: '/', cmd: 'cd ~', note: 'the boot and the panes' },
+  { href: '/work', cmd: 'cd ~/work', note: 'Neokeys, Kanso, Potful and more' },
+  { href: '/cv', cmd: 'cat cv.txt', note: 'experience and skills' },
+];
+---
+
+<Page
+  title="Not found"
+  description="That page does not exist. Go home, see the work or read the CV."
+  current="none"
+  cwd="~/lost"
+  chips={['ls', 'home', 'work', 'cv']}
+  promptIndex={2}
+  noindex
+>
+  <Pane
+    id="intro"
+    index={0}
+    marker="?"
+    title="~/lost"
+    meta="exit 404"
+    class="p-intro"
+    bodyClass="page-head lost"
+    labelledby="h-lost"
+  >
+    <h1 class="page-h1 lost-h1" id="h-lost">
+      <span data-scramble>404</span>
+    </h1>
+    <p class="sub">
+      <b>No such file or directory:</b>{' '}
+      <code class="lost-path" id="lostPath">
+        this address
+      </code>
+    </p>
+    <div class="find" aria-hidden="true">
+      <p class="find-cmd">
+        <span class="pr">$</span> find / -name <span id="findName">?</span>
+      </p>
+      <p class="find-bar">
+        <span class="find-fill"></span>
+      </p>
+      <p class="find-res">0 matches in {pageCount} pages</p>
+    </div>
+  </Pane>
+
+  <Pane
+    id="exits"
+    index={1}
+    marker="ls"
+    title="try instead"
+    meta={`${exits.length} entries`}
+    class="p-exits"
+    bodyClass="exits"
+  >
+    <ul class="exit-list">
+      {exits.map((e) => (
+        <li>
+          <a class="btn" href={e.href}>
+            {e.cmd}
+          </a>
+          <span class="exit-note">{e.note}</span>
+        </li>
+      ))}
+    </ul>
+    <p class="lead">
+      Or type <b>ls</b> in the prompt below, then <b>open</b> a project.
+    </p>
+  </Pane>
+</Page>
+
+<script>
+  // Show the address that was not found (the page itself is the same static
+  // file for every missing address).
+  let path = location.pathname;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // A malformed escape in the address: show it as typed.
+  }
+  const label = path.length > 60 ? `${path.slice(0, 59)}...` : path;
+  const slot = document.getElementById('lostPath');
+  if (slot && path !== '/404' && path !== '/404.html') slot.textContent = label;
+  const name = document.getElementById('findName');
+  if (name) name.textContent = `"${path.split('/').filter(Boolean).pop() ?? ''}"`;
+</script>
