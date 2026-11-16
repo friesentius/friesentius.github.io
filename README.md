@@ -11,7 +11,7 @@ friesentius.com, is attached.
 
 Pages: `/` (home), `/work` (project index), `/work/<project>` (a case study
 for each of Neokeys, Kanso, Potful and internal tools) and `/cv` (the CV,
-which also prints as a clean paper CV). Any other address gets the custom 404
+which also prints as a clean paper CV and downloads as a PDF). Any other address gets the custom 404
 page (`src/pages/404.astro`): a `find` that searches the site for the missing
 path and reports no matches, links home, to work and to the CV, and the same
 working prompt. It is marked `noindex`, has no canonical URL and is not in
@@ -41,11 +41,22 @@ the other pages share its panes, top bar and toggles without the boot:
   ordinary sections, project tiles are native `<details>`, and the prompt is
   hidden.
 
-Copy the owner has not written yet (CV summary and achievements, case study
-narrative) is rendered with a dashed underline and the `Placeholder copy`
-tooltip. Never replace it with a guess; fill it in from `src/data/site.ts`,
-`src/data/cv.ts` and `src/content/projects/` (in a project file, replace a
-`- placeholder: ...` item with plain text).
+Copy the owner has not written yet (for now, the internal tools write-up) is
+rendered with a dashed underline and the `Placeholder copy` tooltip. Never
+replace it with a guess; fill it in from `src/data/site.ts`, `src/data/cv.ts`
+and `src/content/projects/` (in a project file, replace a `placeholder: ...`
+value with plain text).
+
+Case study screenshots are real captures of the real product, never mockups.
+Each is a WebP under `src/assets/shots/<project>/`, captured at its frame's
+shape (16:10 for a wide frame, 9:18 for a phone), and listed in the project
+file with its alt text; the build turns it into sized AVIF and WebP files.
+
+The CV PDF (`/tyler-friesen-cv.pdf`) is not drawn by hand: after every build,
+`scripts/cv-pdf.mjs` prints the built `/cv` page to it with Playwright's
+Chromium, using the same print rules as the browser's print button. So the
+build needs that browser (`npx playwright install chromium`), and `npm run dev`
+does not serve the PDF; use `npm run build && npm run preview`.
 
 The email address is never in the source or the build output. Every email row
 renders `src/components/ContactEmail.astro`: a "show email" button that passes
@@ -74,7 +85,8 @@ src/
                       boot log, the shell's ls/open, the Work index and each
                       case study all read these
   data/site.ts        owner facts; unknown ones stay null and render as placeholders
-  data/cv.ts          the CV entries, skills and education
+  data/cv.ts          the CV entries, skills and education, and the PDF's path
+  assets/shots/       the case studies' screenshots, one folder per project
   lib/shell.ts        the command prompt as pure, unit-tested logic
   lib/email.ts        the "show email" reveal logic, unit-tested
   scripts/            browser behaviour: boot, terminal, prompt, panes, effects,
@@ -85,6 +97,7 @@ src/
   pages/              index (home), work/index, work/[slug], cv, 404 and robots.txt
   data/social.ts      the social share image's path, size and alt text
 scripts/og-image.mjs  renders public/og.png (the Open Graph and Twitter card)
+scripts/cv-pdf.mjs    Astro integration that prints /cv to the CV PDF at build time
 tests/
   unit/               Vitest tests for the shell and the email reveal
   e2e/                Playwright tests against the production build
@@ -115,7 +128,7 @@ prompt, or clear session storage, to see it again.
 
 | Command             | What it does                            |
 | ------------------- | --------------------------------------- |
-| `npm run build`     | Build the static site into `dist/`      |
+| `npm run build`     | Build the site and CV PDF into `dist/`  |
 | `npm run preview`   | Serve `dist/` locally                   |
 | `npm run lint`      | ESLint and Prettier check               |
 | `npm run format`    | Format everything with Prettier         |
@@ -125,7 +138,8 @@ prompt, or clear session storage, to see it again.
 | `npm run test:e2e`  | Build, then Playwright end-to-end tests |
 | `npm test`          | Unit and end-to-end tests               |
 
-The first end-to-end run needs a browser: `npx playwright install chromium`.
+The build (for the CV PDF) and the end-to-end tests need a browser:
+`npx playwright install chromium`.
 
 ## Branches and deploy
 
