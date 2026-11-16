@@ -1543,9 +1543,9 @@
     padding: 2px 0;
   }
 
-  /* A long path (~/work/internal-tools) drops the host on phones so the input keeps its room. */
+  /* Phones drop the host from the prompt so the input keeps its room on the same line. */
   @media (max-width: 420px) {
-    .prompt.long .host {
+    .prompt .host {
       display: none;
     }
   }
@@ -1882,9 +1882,10 @@
     stroke: var(--accent);
   }
 
+  /* Lit keys get an opaque tint, so the ripple never shows through them. */
   .illus .key.hot .wedge,
   .illus .key:focus-visible .wedge {
-    fill: var(--acc-soft);
+    fill: color-mix(in srgb, var(--accent) 14%, var(--pane2));
     stroke: var(--accent);
   }
 
@@ -1956,17 +1957,13 @@
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     gap: 12px;
-    align-items: end;
+    align-items: center;
   }
 
-  /* Full width (no illustration beside it): keep phone frames a sensible height. */
+  /* Full width (no illustration beside it): the wide frame takes more of the
+     row, so the phone frames keep about the same height as it. */
   .c-full .shots:has(.tall) {
-    max-width: 920px;
-    margin-inline: auto;
-  }
-
-  .c-full .shots:has(.tall) + .meta {
-    text-align: center;
+    grid-template-columns: 3fr 1fr 1fr;
   }
 
   /* Two wide frames (no phone screenshots) share the row evenly. */
@@ -2396,7 +2393,7 @@
 
 @keyframes seq {
   0% {
-    fill: var(--acc-soft);
+    fill: color-mix(in srgb, var(--accent) 14%, var(--pane2));
     stroke: var(--accent);
   }
 
@@ -2579,10 +2576,6 @@
   .glog .node::before {
     border-color: #000;
     background: #fff;
-  }
-
-  .glog > li:first-child .node::before {
-    background: #000;
   }
 
   .glog .node::after {

@@ -199,7 +199,10 @@ const idx = () => ++i;
     <div class:list={['shots', `shots-${cs.shots.map((s) => s.shape[0]).join('')}`]}>
       {cs.shots.map((s) => (
         <div class:list={['shot', s.shape]}>
-          <Placeholder>[{s.placeholder}]</Placeholder>
+          {/* The wrapper keeps the label inline, so a wrapped label stays a tight highlight. */}
+          <span>
+            <Placeholder>[{s.placeholder}]</Placeholder>
+          </span>
         </div>
       ))}
     </div>
