@@ -352,9 +352,11 @@ test.describe('workspace highlight', () => {
           setTimeout(() => resolve(window.scrollY === y), 300);
         }),
     );
-    return page.locator('.ws a[aria-current]').evaluateAll((els) =>
-      els.map((el) => el.textContent?.replace(/\s+/g, '').replace(/^\d/, '')),
-    );
+    return page
+      .locator('.ws a[aria-current]')
+      .evaluateAll((els) =>
+        els.map((el) => el.textContent?.replace(/\s+/g, '').replace(/^\d/, '')),
+      );
   }
 
   for (const viewport of [
