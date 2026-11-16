@@ -1,0 +1,23 @@
+---
+import Pane from './Pane.astro';
+import Placeholder from './Placeholder.astro';
+---
+
+<Pane id="cv" index={4} marker="2" title="cv" meta="cv.txt" class="p-cv">
+  <p class="lead rv">
+    <span class="pr">$</span> cat cv.txt
+  </p>
+  <ol class="cv">
+    {[0, 1, 2].map(() => (
+      <li class="rv">
+        <Placeholder>[Role] at [Company], [Years]</Placeholder>
+      </li>
+    ))}
+  </ol>
+  <p class="meta rv">
+    skills: <Placeholder>[Skill], [Skill], [Skill], [Skill]</Placeholder>
+  </p>
+  <div class="cta rv mt-3.5">
+    <span class="btn pending">full CV and PDF: coming soon</span>
+  </div>
+</Pane>

@@ -1,0 +1,13 @@
+# Per-repo no-mistakes overrides.
+#
+# Feature and fix PRs land on `dev`; a release is a `dev` -> `main` PR opened
+# by hand, and only `main` deploys to GitHub Pages. Without this the gate
+# falls back to the repository's default branch, `main`.
+pr:
+  base_branch: dev
+
+# no-mistakes runs in a fresh worktree with no node_modules, so install the
+# locked dependencies before each real npm script.
+commands:
+  lint: 'npm ci && npm run lint && npm run check'
+  test: 'npm ci && npx playwright install chromium && npm test'

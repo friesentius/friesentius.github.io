@@ -1,0 +1,14 @@
+---
+import Placeholder from './Placeholder.astro';
+import { site } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-foot">
+  <span>
+    &copy; {year} {site.name ?? <Placeholder>[Full name]</Placeholder>}
+  </span>
+  <span>planned domain: {site.plannedDomain}</span>
+  <span>static site on GitHub Pages, no trackers</span>
+</footer>

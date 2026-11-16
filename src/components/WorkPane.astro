@@ -1,0 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Pane from './Pane.astro';
+import ProjectTile from './ProjectTile.astro';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+}
+
+const { projects } = Astro.props;
+---
+
+<Pane id="work" index={2} marker="1" title="work" meta="~/work" class="p-work">
+  <p class="lead rv">
+    <span class="pr">$</span> ls ~/work
+  </p>
+  <div class="tiles">
+    {projects.map((p) => (
+      <ProjectTile project={p} />
+    ))}
+  </div>
+</Pane>

@@ -1,0 +1,50 @@
+---
+// One tile of the tiling window manager: a title bar plus a body.
+interface Props {
+  id: string;
+  /** Position in the tiling order; staggers the tile-in animation. */
+  index: number;
+  /** Workspace marker shown before the title (1, 2, m, $ ...). */
+  marker: string;
+  title: string;
+  /** Right-hand side of the title bar. */
+  meta: string;
+  class?: string;
+  bodyClass?: string;
+  /** Focusable as a jump target (keys 1-3 and the shell's goto). */
+  focusable?: boolean;
+}
+
+const {
+  id,
+  index,
+  marker,
+  title,
+  meta,
+  class: className,
+  bodyClass,
+  focusable = true,
+} = Astro.props;
+const headingId = `h-${id}`;
+---
+
+<section
+  class:list={['pane', className]}
+  id={id}
+  style={`--i:${index}`}
+  tabindex={focusable ? -1 : undefined}
+  aria-labelledby={headingId}
+>
+  <div class="pt">
+    <h2 id={headingId}>
+      <span class="n" aria-hidden="true">
+        {marker}
+      </span>
+      <span data-scramble>{title}</span>
+    </h2>
+    <span class="pt-r">{meta}</span>
+  </div>
+  <div class:list={['pb', bodyClass]}>
+    <slot />
+  </div>
+</section>
