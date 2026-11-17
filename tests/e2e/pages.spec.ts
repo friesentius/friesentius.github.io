@@ -282,26 +282,6 @@ test.describe('case studies', () => {
     await expect(page.locator('#screenshots')).toContainText('frames are placeholders');
   });
 
-  test('only Neokeys has the dial, labelled as an illustration', async ({ page }) => {
-    await page.goto('/work/neokeys');
-    await expect(page.locator('#dial')).toContainText('Illustrative drawing, not a screenshot');
-    for (const path of ['/work/kanso', '/work/potful', '/work/internal-tools']) {
-      await page.goto(path);
-      await expect(page.locator('#dial')).toHaveCount(0);
-    }
-  });
-
-  test('the dial answers taps and the keyboard', async ({ page }) => {
-    await page.goto('/work/neokeys');
-    await page.getByRole('button', { name: 'key d' }).click();
-    await expect(page.locator('#dialCap')).toHaveText(
-      'leader, then d runs the command bound to it',
-    );
-    await page.getByRole('button', { name: 'key j' }).focus();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('#dialCap')).toContainText('then j runs');
-  });
-
   test('Potful states no repo or licence (its source is private)', async ({ page }) => {
     await page.goto('/work/potful');
     await expect(page.locator('#meta')).not.toContainText('licence');
@@ -428,7 +408,7 @@ test.describe('reduced motion', () => {
     test(`${path} runs no animations`, async ({ page }) => {
       await page.goto(path);
       await expect(page.locator('#motionBtn')).toHaveAccessibleName('motion:off (system)');
-      await page.locator('.wcard, .illus, .glog').first().hover();
+      await page.locator('.wcard, .glog, #screenshots a').first().hover();
       await page.waitForTimeout(300);
       const running = await page.evaluate(
         () => document.getAnimations().filter((a) => a.playState === 'running').length,
@@ -452,7 +432,7 @@ test.describe('without JavaScript', () => {
 
   test('case studies and the CV read in full', async ({ page }) => {
     await page.goto('/work/neokeys');
-    for (const id of ['meta', 'problem', 'approach', 'dial', 'screenshots', 'stack', 'result'])
+    for (const id of ['meta', 'problem', 'approach', 'screenshots', 'stack', 'result'])
       await expect(page.locator(`#${id}`)).toBeVisible();
     await page.goto('/cv');
     await expect(page.locator('#experience')).toBeVisible();

@@ -261,9 +261,6 @@ test.describe('keyboard', () => {
             };
             // A focus ring may sit on the control or on the frame that draws it.
             const frame = el.closest('.out-frame, .tile, .wcard, summary');
-            // The dial's keys draw their ring as a thick accent stroke on the wedge.
-            const wedge = el.querySelector('.wedge');
-            const dialRing = !!wedge && parseFloat(getComputedStyle(wedge).strokeWidth) >= 3;
             const rect = el.getBoundingClientRect();
             const bar = document.querySelector('.bar')!.getBoundingClientRect();
             // The skip link is drawn above the bar on purpose.
@@ -271,7 +268,7 @@ test.describe('keyboard', () => {
             const tag = el instanceof SVGElement ? 'svg' : el.tagName.toLowerCase();
             return {
               id: `${tag}:${(el.getAttribute('aria-label') ?? el.textContent ?? el.id).trim().slice(0, 30)}`,
-              ring: ringOf(el) || (!!frame && ringOf(frame)) || dialRing,
+              ring: ringOf(el) || (!!frame && ringOf(frame)),
               visible: rect.width > 0 && rect.height > 0,
               inView: rect.bottom > 0 && rect.top < innerHeight,
               hidden: !inBar && rect.top < bar.bottom - 1 && rect.bottom > bar.top,
@@ -320,7 +317,7 @@ test.describe('the on-page motion toggle', () => {
       await page.locator('#motionBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
       // Hover what would animate, where the page has such a thing.
-      const hoverable = page.locator('summary, .wcard, .illus .key').first();
+      const hoverable = page.locator('summary, .wcard').first();
       if (await hoverable.count()) await hoverable.hover();
       await page.evaluate(() => {
         (window as unknown as { raf: number }).raf = 0;

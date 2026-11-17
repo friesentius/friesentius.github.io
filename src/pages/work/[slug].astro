@@ -1,7 +1,6 @@
 ---
 import { getImage, Picture } from 'astro:assets';
 import Copy from '../../components/Copy.astro';
-import DialIllustration from '../../components/DialIllustration.astro';
 import Pane from '../../components/Pane.astro';
 import Placeholder from '../../components/Placeholder.astro';
 import Page from '../../layouts/Page.astro';
@@ -42,7 +41,6 @@ const num = () => String(++n).padStart(2, '0');
 const nums = {
   problem: num(),
   approach: num(),
-  illustration: cs.illustration ? num() : '',
   shots: num(),
   stack: num(),
   result: num(),
@@ -59,8 +57,8 @@ const shots = await Promise.all(
   ),
 );
 const sizes = {
-  wide: '(max-width: 560px) calc(100vw - 48px), (max-width: 1100px) 60vw, 640px',
-  tall: '(max-width: 560px) calc(50vw - 30px), (max-width: 1100px) 20vw, 220px',
+  wide: '(max-width: 560px) calc(100vw - 48px), (max-width: 1100px) 60vw, 720px',
+  tall: '(max-width: 560px) calc(50vw - 30px), (max-width: 1100px) 20vw, 240px',
 };
 const widths = { wide: [640, 960, 1280, 1600], tall: [240, 360, 480, 720] };
 ---
@@ -189,26 +187,13 @@ const widths = { wide: [640, 960, 1280, 1600], tall: [240, 360, 480, 720] };
     </ol>
   </Pane>
 
-  {cs.illustration === 'dial' && (
-    <Pane
-      id="dial"
-      index={idx()}
-      marker={nums.illustration}
-      title="the dial"
-      meta="illustration"
-      class="c-dial rv"
-    >
-      <DialIllustration />
-    </Pane>
-  )}
-
   <Pane
     id="screenshots"
     index={idx()}
     marker={nums.shots}
     title="screenshots"
     meta="ls ./img"
-    class:list={[cs.illustration ? 'c-shots' : 'c-full', 'rv']}
+    class="c-full rv"
   >
     <div class:list={['shots', `shots-${cs.shots.map((s) => s.shape[0]).join('')}`]}>
       {shots.map((s) =>
@@ -286,8 +271,3 @@ const widths = { wide: [640, 960, 1280, 1600], tall: [240, 360, 480, 720] };
     </nav>
   </Pane>
 </Page>
-
-<script>
-  import { setupDial } from '../../scripts/dial';
-  setupDial();
-</script>

@@ -9,37 +9,39 @@ interface Props {
 }
 
 const { kind, size = 'tile' } = Astro.props;
-const keys = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
-const keyPos = keys.map((k, i) => {
-  const a = (i / keys.length) * Math.PI * 2 - Math.PI / 2;
-  return { k, x: +(30 + 19 * Math.cos(a)).toFixed(1), y: +(30 + 19 * Math.sin(a)).toFixed(1) };
-});
+// A quarter-circle dial anchored in the bottom right corner, like the real
+// touch dial: the first keys on an inner ring, the next ring out beyond them.
+const HUB = 52;
+const ring = (r: number) => `M${HUB - r} ${HUB} A${r} ${r} 0 0 1 ${HUB} ${HUB - r}`;
+const keyAt = (k: string, r: number, deg: number, d: number) => {
+  const a = (deg * Math.PI) / 180;
+  return { k, d, x: +(HUB + r * Math.cos(a)).toFixed(1), y: +(HUB + r * Math.sin(a)).toFixed(1) };
+};
+const keyPos = [
+  keyAt('f', 24, 195, 0),
+  keyAt('t', 24, 225, 1),
+  keyAt('w', 24, 255, 2),
+  keyAt('h', 40, 195, 3),
+  keyAt('l', 40, 215, 4),
+  keyAt('2', 40, 235, 5),
+  keyAt('3', 40, 255, 6),
+];
 ---
 
 <span class={size === 'card' ? 'wv' : 'tile-v'} aria-hidden="true">
   {kind === 'dial' && (
-    <svg class="dial" viewBox="0 0 60 60">
-      <g class="ring">
-        <circle cx="30" cy="30" r="26" fill="none" stroke="currentColor" stroke-opacity=".25" />
-        <path
-          class="sweep"
-          d="M30 4 A26 26 0 0 1 56 30"
-          fill="none"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-      </g>
-      <g>
-        {keyPos.map((p, i) => (
-          <>
-            <circle class="k" style={`--d:${i}`} cx={p.x} cy={p.y} r="6" />
-            <text x={p.x} y={p.y}>
-              {p.k}
-            </text>
-          </>
-        ))}
-        <circle class="hub" cx="30" cy="30" r="4" />
-      </g>
+    <svg class="dial" viewBox="6 6 60 60">
+      <path d={ring(24)} fill="none" stroke="currentColor" stroke-opacity=".25" />
+      <path d={ring(40)} fill="none" stroke="currentColor" stroke-opacity=".25" />
+      {keyPos.map((p) => (
+        <>
+          <circle class="k" style={`--d:${p.d}`} cx={p.x} cy={p.y} r="5.5" />
+          <text x={p.x} y={p.y}>
+            {p.k}
+          </text>
+        </>
+      ))}
+      <circle class="hub" cx={HUB} cy={HUB} r="5" />
     </svg>
   )}
   {kind === 'kanso' && (
