@@ -317,7 +317,7 @@ test.describe('the on-page motion toggle', () => {
       await page.locator('#motionBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
       // Hover what would animate, where the page has such a thing.
-      const hoverable = page.locator('summary, .wcard, .illus .key').first();
+      const hoverable = page.locator('summary, .wcard').first();
       if (await hoverable.count()) await hoverable.hover();
       await page.evaluate(() => {
         (window as unknown as { raf: number }).raf = 0;

@@ -18,21 +18,21 @@ const keyAt = (k: string, r: number, deg: number, d: number) => {
   return { k, d, x: +(HUB + r * Math.cos(a)).toFixed(1), y: +(HUB + r * Math.sin(a)).toFixed(1) };
 };
 const keyPos = [
-  keyAt('f', 18, 195, 0),
-  keyAt('t', 18, 225, 1),
-  keyAt('w', 18, 255, 2),
-  keyAt('h', 36, 190, 3),
-  keyAt('l', 36, 210, 4),
-  keyAt('2', 36, 230, 5),
-  keyAt('3', 36, 250, 6),
+  keyAt('f', 24, 195, 0),
+  keyAt('t', 24, 225, 1),
+  keyAt('w', 24, 255, 2),
+  keyAt('h', 40, 195, 3),
+  keyAt('l', 40, 215, 4),
+  keyAt('2', 40, 235, 5),
+  keyAt('3', 40, 255, 6),
 ];
 ---
 
 <span class={size === 'card' ? 'wv' : 'tile-v'} aria-hidden="true">
   {kind === 'dial' && (
     <svg class="dial" viewBox="6 6 60 60">
-      <path d={ring(18)} fill="none" stroke="currentColor" stroke-opacity=".25" />
-      <path d={ring(36)} fill="none" stroke="currentColor" stroke-opacity=".25" />
+      <path d={ring(24)} fill="none" stroke="currentColor" stroke-opacity=".25" />
+      <path d={ring(40)} fill="none" stroke="currentColor" stroke-opacity=".25" />
       {keyPos.map((p) => (
         <>
           <circle class="k" style={`--d:${p.d}`} cx={p.x} cy={p.y} r="5.5" />
