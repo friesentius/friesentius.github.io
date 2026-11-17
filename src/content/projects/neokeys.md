@@ -26,7 +26,6 @@ caseStudy:
     - 'Key sequences like Neovim, tmux and herdr: press the leader, then a few keys to walk a keymap of groups, commands and files, with a which-key popup showing what each key does. The keymap is edited as a tree in settings, or as Spacekeys-compatible YAML.'
     - 'Make it work on mobile: on phones and tablets, a dial pinned to a bottom corner of the screen replaces typing and runs the same keymap as the desktop.'
     - 'The dial maps commands the same way key sequences do. Press the leader button and the first keys fan out on a ring; drag onto a group and its keys open on the next ring out, then let go on a command to run it. It sits in a corner so it is easy to use one handed.'
-  illustration: dial
   shots:
     - shape: wide
       src: ../../assets/shots/neokeys/which-key-popup.webp

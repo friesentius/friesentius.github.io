@@ -1064,11 +1064,6 @@
     height: 60px;
   }
 
-  .dial .ring {
-    transform-origin: 50% 50%;
-    transform-box: fill-box;
-  }
-
   .dial .k {
     fill: var(--pane2);
     stroke: var(--line);
@@ -1081,18 +1076,8 @@
     dominant-baseline: central;
   }
 
-  .dial .sweep {
-    stroke: var(--accent);
-  }
-
   .dial .hub {
     fill: var(--accent);
-  }
-
-  .tile:hover .dial .ring,
-  .tile[open] .dial .ring,
-  .tile:focus-within .dial .ring {
-    animation: spin 5s linear infinite;
   }
 
   .tile:hover .dial .k,
@@ -1921,11 +1906,6 @@
     padding: 8px 0;
   }
 
-  .wcard:hover .dial .ring,
-  .wcard:focus-within .dial .ring {
-    animation: spin 5s linear infinite;
-  }
-
   .wcard:hover .dial .k,
   .wcard:focus-within .dial .k {
     animation: key-on 2s steps(1) infinite;
@@ -1967,23 +1947,13 @@
     grid-column: span 6;
   }
 
-  .c-dial {
-    grid-column: span 4;
-  }
-
-  .c-shots {
-    grid-column: span 8;
-  }
-
   .c-full {
     grid-column: span 12;
   }
 
   @media (max-width: 1100px) {
     .c-hero,
-    .c-meta,
-    .c-dial,
-    .c-shots {
+    .c-meta {
       grid-column: span 12;
     }
   }
@@ -1992,108 +1962,6 @@
     .c-half {
       grid-column: span 12;
     }
-  }
-
-  .illus {
-    display: grid;
-    gap: 10px;
-    justify-items: center;
-  }
-
-  .illus svg {
-    width: min(100%, 300px);
-    height: auto;
-    overflow: visible;
-    touch-action: manipulation;
-  }
-
-  .illus .key {
-    cursor: pointer;
-    outline: none;
-  }
-
-  .illus .wedge {
-    fill: var(--pane2);
-    stroke: var(--line);
-    stroke-width: 1.2;
-    transition:
-      fill 0.2s,
-      stroke 0.2s;
-  }
-
-  .illus .key:hover .wedge {
-    stroke: var(--accent);
-  }
-
-  /* Lit keys get an opaque tint, so the ripple never shows through them. */
-  .illus .key.hot .wedge,
-  .illus .key:focus-visible .wedge {
-    fill: color-mix(in srgb, var(--accent) 14%, var(--pane2));
-    stroke: var(--accent);
-  }
-
-  .illus .key:focus-visible .wedge {
-    stroke-width: 3;
-  }
-
-  .illus .klab {
-    fill: var(--fg);
-    font: 700 15px var(--font-mono);
-    text-anchor: middle;
-    dominant-baseline: central;
-    pointer-events: none;
-  }
-
-  .illus .hubc {
-    fill: var(--accent);
-  }
-
-  .illus .hubt {
-    fill: var(--bg);
-    font: 800 11px var(--font-mono);
-    text-anchor: middle;
-    dominant-baseline: central;
-    pointer-events: none;
-  }
-
-  .illus .ripple {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 2;
-    opacity: 0;
-    transform-origin: 150px 150px;
-    transform-box: view-box;
-  }
-
-  :root.js:not(.calm) .illus .ripple {
-    animation: ripple 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
-  }
-
-  :root.js:not(.calm) .illus .ripple.r2 {
-    animation-delay: 1.2s;
-  }
-
-  :root.js:not(.calm) .illus .key:not(.hot, :focus-visible) .seq {
-    animation: seq 4s steps(1) infinite;
-    animation-delay: calc(var(--d) * 0.5s);
-  }
-
-  .illus-cap {
-    font-size: 12px;
-    color: var(--dim);
-    text-align: center;
-  }
-
-  .illus-cap b {
-    color: var(--accent);
-  }
-
-  .illus-tag {
-    font-size: 11px;
-    color: var(--dim);
-    border: 1px dashed var(--accent);
-    border-radius: 3px;
-    padding: 2px 8px;
   }
 
   /* A 16:10 frame and two 9:18 phones share one height: 1.6 : 0.5 : 0.5. */
@@ -2442,12 +2310,6 @@
   }
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes key-on {
   0% {
     fill: var(--acc-soft);
@@ -2548,31 +2410,6 @@
 
   to {
     transform: scaleY(1);
-  }
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0.3);
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: scale(1.05);
-    opacity: 0;
-  }
-}
-
-@keyframes seq {
-  0% {
-    fill: color-mix(in srgb, var(--accent) 14%, var(--pane2));
-    stroke: var(--accent);
-  }
-
-  12.5%,
-  100% {
-    fill: var(--pane2);
-    stroke: var(--line);
   }
 }
 

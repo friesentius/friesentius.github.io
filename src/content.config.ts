@@ -53,8 +53,6 @@ const projects = defineCollection({
         ),
         problem: z.array(copy),
         approach: z.array(copy),
-        /** Illustrative drawing, always labelled as not a screenshot. */
-        illustration: z.enum(['dial']).optional(),
         /**
          * Screenshot frames: a real screenshot (an image under src/assets/,
          * captured at the frame's shape, 16:10 wide or 9:18 tall) with its alt

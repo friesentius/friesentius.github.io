@@ -90,7 +90,7 @@ src/
   lib/shell.ts        the command prompt as pure, unit-tested logic
   lib/email.ts        the "show email" reveal logic, unit-tested
   scripts/            browser behaviour: boot, terminal, prompt, panes, effects,
-                      prefs, and one module per page (work, dial, cv)
+                      prefs, and one module per page (work, cv)
   components/         the panes and their parts
   layouts/Base.astro  document shell, plus the inline pre-paint script
   layouts/Page.astro  top bar, prompt and footer for every page but home
